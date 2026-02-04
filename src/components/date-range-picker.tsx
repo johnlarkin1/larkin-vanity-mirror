@@ -64,6 +64,13 @@ export function DateRangePicker({
     value ?? { from: subDays(new Date(), 30), to: new Date() }
   );
 
+  // Sync internal state when external value changes (controlled mode)
+  React.useEffect(() => {
+    if (value !== undefined) {
+      setDate(value);
+    }
+  }, [value]);
+
   const handleDateChange = (newDate: DateRange | undefined) => {
     setDate(newDate);
     onChange?.(newDate);

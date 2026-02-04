@@ -18,12 +18,19 @@ export interface VisitorMetrics {
   bounceRate?: MetricValue;
 }
 
+export interface TopPage {
+  pagePath: string;
+  pageTitle: string;
+  pageviews: number;
+}
+
 export interface BlogMetrics extends VisitorMetrics {
   mostPopularPost?: {
     title: string;
     views: number;
     url?: string;
   };
+  topPages?: TopPage[];
 }
 
 export interface GitHubRepoMetrics {
