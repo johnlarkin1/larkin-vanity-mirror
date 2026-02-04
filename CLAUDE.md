@@ -1,138 +1,64 @@
-# Larkin Vanity Mirror
+# CLAUDE.md
 
-A personal analytics dashboard aggregating metrics from multiple data sources into a single unified view.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Mission
-
-Create an internal dashboard providing near real-time visibility into personal project metrics across:
-- Websites and blogs
-- Mobile applications
-- Open source projects
-
-The architecture should be extensible for other developers to adapt for their own use.
-
-## Data Sources
-
-### 1. Blog (johnlarkin1.github.io)
-**Provider:** Google Analytics
-
-| Metric | Granularity |
-|--------|-------------|
-| Visitors | Daily, Weekly, Monthly |
-| Unique Visitors | Daily, Weekly, Monthly |
-| Most Popular Post | Weekly, Monthly, Yearly |
-
-### 2. Tennis Scorigami
-**Provider:** PostHog
-
-| Metric | Granularity |
-|--------|-------------|
-| Visitors | Daily, Weekly, Monthly |
-| Unique Visitors | Daily, Weekly, Monthly |
-
-### 3. Scrollz.co (iOS App)
-**Provider:** Supabase
-
-| Metric | Granularity |
-|--------|-------------|
-| App Store Downloads | Total, Trend |
-| Active Users | DAU, WAU, MAU |
-| Canny Notifications | Real-time alerts |
-
-### 4. walk-in-the-parquet
-**Provider:** TBD (likely npm/PyPI stats + website analytics)
-
-| Metric | Granularity |
-|--------|-------------|
-| Package Downloads | Total, Trend |
-| Page Visitors | DAU, WAU, MAU |
-
-### 5. GitHub Repositories
-**Provider:** GitHub API
-
-| Metric | Granularity |
-|--------|-------------|
-| Stars | Total per repo |
-| Star Velocity | Temporal trends (detect aggressive starring) |
-| New Stars | Daily, Weekly alerts |
-
-## Architecture (Planned)
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Frontend Dashboard                        │
-│                      (Next.js 16 + React 19)                    │
-└─────────────────────────────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                          API Layer                               │
-│                    (Next.js API Routes)                          │
-└─────────────────────────────────────────────────────────────────┘
-                                 │
-        ┌────────────┬───────────┼───────────┬────────────┐
-        ▼            ▼           ▼           ▼            ▼
-   ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐
-   │ Google  │  │ PostHog │  │Supabase │  │ Package │  │ GitHub  │
-   │Analytics│  │   API   │  │   API   │  │ Stats   │  │   API   │
-   └─────────┘  └─────────┘  └─────────┘  └─────────┘  └─────────┘
-```
-
-## Tech Stack
-
-- **Frontend:** Next.js 16 with App Router
-- **UI Framework:** React 19
-- **Styling:** Tailwind CSS + shadcn/ui
-- **Data Fetching:** TanStack Query (React Query)
-- **Charts:** Recharts or Tremor
-- **Auth:** NextAuth.js (for securing the dashboard)
-- **Deployment:** Vercel
-
-## Development
+## Commands
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Run development server
-pnpm dev
-
-# Build for production
-pnpm build
+pnpm dev          # Run development server (localhost:3000)
+pnpm build        # Build for production
+pnpm lint         # Run ESLint
 ```
+
+## Architecture
+
+Personal analytics dashboard aggregating metrics from multiple data sources (Google Analytics, PostHog, Supabase, GitHub API, npm/PyPI stats).
+
+### Tech Stack
+
+- Next.js 16 with App Router + React 19
+- Tailwind CSS + shadcn/ui components
+- TanStack Query for data fetching
+- Recharts for visualizations
+
+### Route Structure
+
+- `src/app/layout.tsx` - Root layout with Providers wrapper (TanStack Query + next-themes)
+- `src/app/(dashboard)/` - Dashboard route group with shared sidebar/header layout
+  - `page.tsx` - Overview dashboard (Blog analytics)
+  - `blog/`, `github/`, `scrollz/`, `tennis-scorigami/`, `walk-in-the-parquet/` - Data source pages
+
+### Data Flow Pattern
+
+```
+Page Component
+    └── use[Source]Analytics hook (TanStack Query)
+            └── /api/[source]/analytics route
+                    └── lib/[source].ts (API client)
+```
+
+New data sources should follow this pattern:
+1. Create lib module for API client (e.g., `lib/posthog.ts`)
+2. Add API route in `app/api/[source]/`
+3. Create hook in `hooks/use-[source]-analytics.ts`
+4. Build page in `app/(dashboard)/[source]/`
+
+### Key Directories
+
+- `src/components/ui/` - shadcn/ui primitives
+- `src/components/data-display/` - Dashboard components (MetricCard, DataTable, StatGroup)
+- `src/components/charts/` - Recharts wrappers (TimeSeriesChart)
+- `src/providers/` - React context providers (QueryClient, ThemeProvider)
+- `src/types/` - Shared TypeScript types
+
+### Path Alias
+
+`@/*` maps to `./src/*`
 
 ## Environment Variables
 
-Required API keys and secrets (to be configured in `.env.local`):
+Copy `.env.local.example` to `.env.local`. Currently implemented:
+- `GOOGLE_ANALYTICS_PROPERTY_ID` - GA4 property ID (numeric)
+- `GOOGLE_SERVICE_ACCOUNT_KEY` - Base64-encoded service account JSON
 
-```
-# Google Analytics
-GOOGLE_ANALYTICS_PROPERTY_ID=
-GOOGLE_SERVICE_ACCOUNT_KEY=
-
-# PostHog
-POSTHOG_API_KEY=
-POSTHOG_PROJECT_ID=
-
-# Supabase
-SUPABASE_URL=
-SUPABASE_ANON_KEY=
-
-# GitHub
-GITHUB_TOKEN=
-
-# Canny (for Scrollz notifications)
-CANNY_API_KEY=
-```
-
-## Roadmap
-
-- [ ] Project scaffolding (Next.js 16 + React 19 + Tailwind + shadcn/ui)
-- [ ] GitHub integration (star tracking with trends)
-- [ ] Google Analytics integration
-- [ ] PostHog integration
-- [ ] Supabase integration (Scrollz metrics)
-- [ ] Package download stats (npm/PyPI)
-- [ ] Unified dashboard UI
-- [ ] Alerting system for anomalies
-- [ ] Make extensible/configurable for other developers
+See `.env.local.example` for all planned integrations (PostHog, Supabase, GitHub, Canny, npm/PyPI).
