@@ -3,7 +3,6 @@
 import { Menu, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
-import { DateRangePicker } from "@/components/date-range-picker";
 import {
   Sheet,
   SheetContent,
@@ -36,7 +35,6 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2">
-        <DateRangePicker />
         <Button variant="ghost" size="icon" onClick={handleRefresh}>
           <RefreshCw className="h-5 w-5" />
           <span className="sr-only">Refresh data</span>
