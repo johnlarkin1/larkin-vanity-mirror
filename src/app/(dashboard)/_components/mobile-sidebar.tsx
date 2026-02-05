@@ -9,6 +9,7 @@ import {
   Gamepad2,
   Smartphone,
   Package,
+  Boxes,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -48,6 +49,12 @@ const navigation = [
     href: "/walk-in-the-parquet",
     icon: Package,
     description: "Package downloads",
+  },
+  {
+    name: "Published Packages",
+    href: "/packages",
+    icon: Boxes,
+    description: "npm, PyPI, Cargo",
   },
 ];
 
