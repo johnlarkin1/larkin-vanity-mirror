@@ -4,8 +4,25 @@ import {
   fetchAppStoreAnalytics,
   isAppStoreConnectConfigured,
 } from "@/lib/app-store-connect";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
+  // Check rate limit
+  const rateLimitResult = rateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { success: false, error: "Rate limit exceeded. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": Math.ceil(
+            (rateLimitResult.resetTime - Date.now()) / 1000
+          ).toString(),
+        },
+      }
+    );
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
@@ -39,12 +56,9 @@ export async function GET(request: NextRequest) {
 
   // Check if at least one data source is configured
   if (!gaPropertyId && !appStoreConfigured) {
+    console.error("Walk in the Parquet: No data sources configured");
     return NextResponse.json(
-      {
-        success: false,
-        error:
-          "No data sources configured. Set WALK_IN_THE_PARQUET_GA_PROPERTY_ID and/or App Store Connect credentials.",
-      },
+      { success: false, error: "Analytics data sources not configured" },
       { status: 500 }
     );
   }
@@ -53,10 +67,15 @@ export async function GET(request: NextRequest) {
     // Fetch data from both sources in parallel
     const [documentationData, appStoreData] = await Promise.all([
       gaPropertyId && serviceAccountKey
-        ? fetchAnalyticsForProperty(gaPropertyId, startDate, endDate).catch((err) => {
-            console.error("Error fetching GA data for Walk in the Parquet:", err);
-            return null;
-          })
+        ? fetchAnalyticsForProperty(gaPropertyId, startDate, endDate).catch(
+            (err) => {
+              console.error(
+                "Error fetching GA data for Walk in the Parquet:",
+                err
+              );
+              return null;
+            }
+          )
         : Promise.resolve(null),
       appStoreConfigured
         ? fetchAppStoreAnalytics(startDate, endDate).catch((err) => {
@@ -75,24 +94,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching Walk in the Parquet analytics:", error);
+    console.error("Walk in the Parquet analytics error:", error);
 
+    // Return generic error messages - never expose internal details
     if (error instanceof Error) {
-      // Check for specific error types
-      if (
-        error.message.includes("Missing") ||
-        error.message.includes("Failed to parse") ||
-        error.message.includes("Invalid")
-      ) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
-          { status: 500 }
-        );
-      }
-
       // Check for authentication errors
       if (
         error.message.includes("UNAUTHENTICATED") ||
@@ -100,33 +105,25 @@ export async function GET(request: NextRequest) {
         error.message.includes("401")
       ) {
         return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Authentication failed. Check your service account key and App Store Connect credentials.",
-          },
+          { success: false, error: "Service authentication failed" },
           { status: 502 }
         );
       }
 
       // Check for permission errors
-      if (error.message.includes("PERMISSION_DENIED") || error.message.includes("403")) {
+      if (
+        error.message.includes("PERMISSION_DENIED") ||
+        error.message.includes("403")
+      ) {
         return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Permission denied. Ensure proper access is granted for all data sources.",
-          },
+          { success: false, error: "Access denied to analytics data" },
           { status: 403 }
         );
       }
     }
 
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch analytics data",
-      },
+      { success: false, error: "Failed to fetch analytics data" },
       { status: 500 }
     );
   }

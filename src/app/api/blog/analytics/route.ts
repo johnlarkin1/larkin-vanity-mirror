@@ -1,7 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchBlogAnalytics } from "@/lib/google-analytics";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
+  // Check rate limit
+  const rateLimitResult = rateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { success: false, error: "Rate limit exceeded. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": Math.ceil(
+            (rateLimitResult.resetTime - Date.now()) / 1000
+          ).toString(),
+        },
+      }
+    );
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
@@ -37,33 +54,19 @@ export async function GET(request: NextRequest) {
       data,
     });
   } catch (error) {
-    console.error("Error fetching blog analytics:", error);
+    console.error("Blog analytics error:", error);
 
-    // Check for specific error types
+    // Return generic error messages - never expose internal details
     if (error instanceof Error) {
-      // Check for missing env vars or parse errors
-      if (error.message.includes("Missing GOOGLE_") ||
-          error.message.includes("Failed to parse") ||
-          error.message.includes("Invalid service account")) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
-          { status: 500 }
-        );
-      }
-
       // Check for authentication errors
-      if (error.message.includes("Could not load the default credentials") ||
-          error.message.includes("invalid_grant") ||
-          error.message.includes("UNAUTHENTICATED") ||
-          error.message.includes("ACCOUNT_STATE_INVALID")) {
+      if (
+        error.message.includes("Could not load the default credentials") ||
+        error.message.includes("invalid_grant") ||
+        error.message.includes("UNAUTHENTICATED") ||
+        error.message.includes("ACCOUNT_STATE_INVALID")
+      ) {
         return NextResponse.json(
-          {
-            success: false,
-            error: "Authentication failed. The service account credentials may be invalid or the account may be disabled. Please verify your GOOGLE_SERVICE_ACCOUNT_KEY is correctly base64-encoded and the service account is active.",
-          },
+          { success: false, error: "Service authentication failed" },
           { status: 502 }
         );
       }
@@ -71,10 +74,7 @@ export async function GET(request: NextRequest) {
       // Check for permission errors
       if (error.message.includes("PERMISSION_DENIED")) {
         return NextResponse.json(
-          {
-            success: false,
-            error: "Permission denied. Ensure the service account has Viewer access to the GA4 property.",
-          },
+          { success: false, error: "Access denied to analytics data" },
           { status: 403 }
         );
       }
@@ -82,20 +82,14 @@ export async function GET(request: NextRequest) {
       // Check for property not found
       if (error.message.includes("NOT_FOUND")) {
         return NextResponse.json(
-          {
-            success: false,
-            error: "GA4 property not found. Check your GOOGLE_ANALYTICS_PROPERTY_ID.",
-          },
+          { success: false, error: "Analytics property not found" },
           { status: 404 }
         );
       }
     }
 
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch analytics data",
-      },
+      { success: false, error: "Failed to fetch analytics data" },
       { status: 500 }
     );
   }
