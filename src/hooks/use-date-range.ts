@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { subDays } from "date-fns";
+import { subMonths } from "date-fns";
 import type { DateRange } from "react-day-picker";
 
 const DEFAULT_RANGE: DateRange = {
-  from: subDays(new Date(), 30),
+  from: subMonths(new Date(), 6),
   to: new Date(),
 };
 
