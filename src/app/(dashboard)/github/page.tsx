@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, TrendingUp, GitFork, Eye, FolderGit2, RefreshCw, ExternalLink, Calendar } from "lucide-react";
+import { Star, TrendingUp, GitFork, Eye, FolderGit2, RefreshCw, ExternalLink, Calendar, Lock, Globe } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { MetricCard } from "@/components/data-display/metric-card";
 import { DataTable } from "@/components/data-display/data-table";
@@ -123,14 +123,14 @@ const columns: ColumnDef<GitHubRepository>[] = [
             rel="noopener noreferrer"
             className="flex items-center gap-1 font-medium hover:underline"
           >
-            {repo.isFork && <GitFork className="h-3 w-3 text-muted-foreground" />}
-            {repo.name}
-            <ExternalLink className="h-3 w-3" />
+            {repo.isFork && <GitFork className="h-3 w-3 text-muted-foreground shrink-0" />}
+            <span>{repo.name}</span>
+            <ExternalLink className="h-3 w-3 shrink-0" />
           </a>
           {repo.description && (
-            <span className="line-clamp-1 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {repo.description}
-            </span>
+            </p>
           )}
         </div>
       );
@@ -168,6 +168,23 @@ const columns: ColumnDef<GitHubRepository>[] = [
     header: "Status",
     cell: ({ row }) => {
       const badges = [];
+      // Visibility badge
+      if (row.original.isPrivate) {
+        badges.push(
+          <Badge key="private" variant="secondary" className="gap-1">
+            <Lock className="h-3 w-3" />
+            Private
+          </Badge>
+        );
+      } else {
+        badges.push(
+          <Badge key="public" variant="outline" className="gap-1">
+            <Globe className="h-3 w-3" />
+            Public
+          </Badge>
+        );
+      }
+      // Fork badge
       if (row.original.isFork) {
         badges.push(
           <Badge key="fork" variant="secondary" className="gap-1">
@@ -176,12 +193,11 @@ const columns: ColumnDef<GitHubRepository>[] = [
           </Badge>
         );
       }
+      // Archive status
       if (row.original.isArchived) {
         badges.push(<Badge key="archived" variant="outline">Archived</Badge>);
-      } else {
-        badges.push(<Badge key="active" variant="default">Active</Badge>);
       }
-      return <div className="flex gap-1">{badges}</div>;
+      return <div className="flex flex-wrap gap-1">{badges}</div>;
     },
   },
   {
@@ -274,7 +290,7 @@ export default function GitHubPage() {
           title="Repositories"
           value={data?.metrics.repoCount ?? "--"}
           icon={FolderGit2}
-          trendLabel="Public repos"
+          trendLabel="All repos"
           isLoading={isLoading}
         />
       </div>

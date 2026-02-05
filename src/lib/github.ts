@@ -189,6 +189,7 @@ export async function fetchUserRepositories(
     const url = token
       ? `https://api.github.com/user/repos?per_page=${perPage}&page=${page}&affiliation=owner&visibility=all&sort=updated`
       : `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}&type=owner&sort=updated`;
+
     const response = await fetchWithAuth(url, token);
 
     if (!response.ok) {
@@ -219,6 +220,7 @@ export async function fetchUserRepositories(
           languages: [] as LanguageBreakdown[], // Will be populated below
           isArchived: repo.archived,
           isFork: repo.fork,
+          isPrivate: repo.private,
           createdAt: repo.created_at,
           updatedAt: repo.updated_at,
           pushedAt: repo.pushed_at,
@@ -229,10 +231,10 @@ export async function fetchUserRepositories(
     page++;
   }
 
-  // Sort by stars descending, then by creation date descending
+  // Sort by stars descending, then by most recently updated descending
   repos.sort((a, b) => {
     if (b.stars !== a.stars) return b.stars - a.stars;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
   });
 
   // Fetch language breakdowns in parallel for all repos
