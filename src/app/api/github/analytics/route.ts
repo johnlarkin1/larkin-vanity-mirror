@@ -1,7 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { fetchGitHubAnalytics } from "@/lib/github";
+import { rateLimit } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Check rate limit
+  const rateLimitResult = rateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { success: false, error: "Rate limit exceeded. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": Math.ceil(
+            (rateLimitResult.resetTime - Date.now()) / 1000
+          ).toString(),
+        },
+      }
+    );
+  }
+
   try {
     const data = await fetchGitHubAnalytics();
 
@@ -10,27 +27,14 @@ export async function GET() {
       data,
     });
   } catch (error) {
-    console.error("Error fetching GitHub analytics:", error);
+    console.error("GitHub analytics error:", error);
 
+    // Return generic error messages - never expose internal details
     if (error instanceof Error) {
-      // Check for missing env vars
-      if (error.message.includes("Missing GITHUB_USERNAME")) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
-          { status: 500 }
-        );
-      }
-
-      // Check for rate limit
+      // Check for rate limit from GitHub API
       if (error.message.includes("rate limit exceeded")) {
         return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
+          { success: false, error: "GitHub API rate limit exceeded" },
           { status: 429 }
         );
       }
@@ -38,10 +42,7 @@ export async function GET() {
       // Check for auth errors
       if (error.message.includes("authentication failed")) {
         return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
+          { success: false, error: "GitHub authentication failed" },
           { status: 401 }
         );
       }
@@ -49,28 +50,14 @@ export async function GET() {
       // Check for user not found
       if (error.message.includes("not found")) {
         return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
+          { success: false, error: "GitHub user not found" },
           { status: 404 }
         );
       }
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: error.message,
-        },
-        { status: 500 }
-      );
     }
 
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch GitHub analytics",
-      },
+      { success: false, error: "Failed to fetch GitHub analytics" },
       { status: 500 }
     );
   }

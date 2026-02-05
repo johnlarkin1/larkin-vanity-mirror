@@ -1,98 +1,139 @@
 # Larkin Vanity Mirror - Task Breakdown
 
-## Phase 1: Project Foundation
+## Current Status Summary
+
+| Phase | Status | Notes |
+|-------|--------|-------|
+| Phase 1: Foundation | ✅ Complete | All scaffolding, layout, components done |
+| Phase 2: GitHub | ✅ Complete | Full integration with star tracking, velocity |
+| Phase 3: Google Analytics | ✅ Complete | Blog metrics with time series charts |
+| Phase 4: PostHog | ✅ Complete | Tennis Scorigami analytics |
+| Phase 5: Scrollz | ⏸️ Deferred | Page exists as stub, integration skipped |
+| Phase 6: Package Stats | ✅ Complete | npm, PyPI, crates.io + App Store Connect |
+| Phase 7: Dashboard | 🔄 Partial | Overview page complete, anomaly detection pending |
+| Phase 8: Auth & Security | ⚠️ Pending | Security review needed before deployment |
+| Phase 9: Deployment | ⚠️ Pending | Ready for Vercel deployment |
+| Phase 10: Extensibility | 📋 Future | Not started |
+
+---
+
+## Next Steps (Priority Order)
+
+1. **Security Review for Vercel Deployment**
+   - [ ] Audit API routes for server-only key access
+   - [ ] Verify no client-side API key exposure
+   - [ ] Add rate limiting to API routes
+   - [ ] Review CORS and CSP headers
+
+2. **Vercel Deployment**
+   - [ ] Configure Vercel project
+   - [ ] Set up environment variables securely
+   - [ ] Deploy to production
+   - [ ] Verify build and runtime behavior
+
+3. **Optional Enhancements**
+   - [ ] Anomaly detection (Phase 7.2)
+   - [ ] Error boundaries and fallback UI
+   - [ ] Mobile responsive tweaks
+
+---
+
+## Phase 1: Project Foundation ✅
 
 ### 1.1 Project Scaffolding
-- [ ] Initialize Next.js 16 project with TypeScript
-- [ ] Configure Tailwind CSS v4
-- [ ] Install and configure shadcn/ui
-- [ ] Set up project structure (app router layout)
-- [ ] Configure ESLint and Prettier
-- [ ] Create `.env.local.example` with all required env vars
-- [ ] Add `.gitignore` entries for secrets
+- [x] Initialize Next.js 16 project with TypeScript
+- [x] Configure Tailwind CSS v4
+- [x] Install and configure shadcn/ui
+- [x] Set up project structure (app router layout)
+- [x] Configure ESLint and Prettier
+- [x] Create `.env.local.example` with all required env vars
+- [x] Add `.gitignore` entries for secrets
 
 ### 1.2 Base Dashboard Layout
-- [ ] Create root layout with sidebar navigation
-- [ ] Build dashboard shell component (header, main content area)
-- [ ] Add dark/light mode toggle
-- [ ] Create loading skeletons for data cards
-- [ ] Set up TanStack Query provider
+- [x] Create root layout with sidebar navigation
+- [x] Build dashboard shell component (header, main content area)
+- [x] Add dark/light mode toggle
+- [x] Create loading skeletons for data cards
+- [x] Set up TanStack Query provider
+- [x] **Bonus:** Draggable/resizable sidebar with collapse functionality
 
 ### 1.3 Shared Components
-- [ ] MetricCard component (displays single metric with trend)
-- [ ] TimeSeriesChart component (line/area chart wrapper)
-- [ ] DataTable component (for detailed breakdowns)
-- [ ] DateRangePicker component (for filtering)
-- [ ] StatGroup component (DAU/WAU/MAU display)
+- [x] MetricCard component (displays single metric with trend)
+- [x] TimeSeriesChart component (line/area chart wrapper)
+- [x] DataTable component (for detailed breakdowns)
+- [x] DateRangePicker component (for filtering)
+- [x] StatGroup component (DAU/WAU/MAU display)
 
 ---
 
-## Phase 2: GitHub Integration
+## Phase 2: GitHub Integration ✅
 
 ### 2.1 GitHub API Setup
-- [ ] Create GitHub API client (`/lib/github.ts`)
-- [ ] Implement authenticated requests with token
-- [ ] Add rate limit handling
+- [x] Create GitHub API client (`/lib/github.ts`)
+- [x] Implement authenticated requests with token
+- [x] Add rate limit handling
 
 ### 2.2 Star Tracking
-- [ ] Fetch star count for configured repos
-- [ ] Fetch stargazers with timestamps (for velocity calculation)
-- [ ] Calculate star velocity (daily/weekly trends)
-- [ ] Detect "aggressive starring" anomalies
+- [x] Fetch star count for configured repos
+- [x] Fetch stargazers with timestamps (for velocity calculation)
+- [x] Calculate star velocity (daily/weekly trends)
+- [x] Detect "aggressive starring" anomalies
 
 ### 2.3 GitHub Dashboard Section
-- [ ] Create `/app/github/page.tsx`
-- [ ] RepoStarsCard component (per-repo star count + trend)
-- [ ] StarVelocityChart component (stars over time)
-- [ ] RepoList component (all tracked repos)
-- [ ] API route: `GET /api/github/stars`
+- [x] Create `/app/(dashboard)/github/page.tsx`
+- [x] RepoStarsCard component (per-repo star count + trend)
+- [x] StarVelocityChart component (stars over time)
+- [x] RepoList component (all tracked repos)
+- [x] API route: `GET /api/github/analytics`
 
 ---
 
-## Phase 3: Google Analytics Integration (Blog)
+## Phase 3: Google Analytics Integration (Blog) ✅
 
 ### 3.1 Google Analytics API Setup
-- [ ] Set up Google Cloud project with Analytics Data API
-- [ ] Create service account and download credentials
-- [ ] Create GA client (`/lib/google-analytics.ts`)
-- [ ] Implement authentication with service account
+- [x] Set up Google Cloud project with Analytics Data API
+- [x] Create service account and download credentials
+- [x] Create GA client (`/lib/google-analytics.ts`)
+- [x] Implement authentication with service account
 
 ### 3.2 Blog Metrics
-- [ ] Fetch daily/weekly/monthly visitors
-- [ ] Fetch daily/weekly/monthly unique visitors
-- [ ] Fetch top pages by pageviews (for "most popular post")
-- [ ] Calculate period-over-period comparisons
+- [x] Fetch daily/weekly/monthly visitors
+- [x] Fetch daily/weekly/monthly unique visitors
+- [x] Fetch top pages by pageviews (for "most popular post")
+- [x] Calculate period-over-period comparisons
 
 ### 3.3 Blog Dashboard Section
-- [ ] Create `/app/blog/page.tsx`
-- [ ] VisitorStatsCard component (visitors + uniques)
-- [ ] TrafficChart component (visitors over time)
-- [ ] TopPostsTable component (popular posts ranking)
-- [ ] API route: `GET /api/blog/analytics`
+- [x] Create `/app/(dashboard)/blog/page.tsx`
+- [x] VisitorStatsCard component (visitors + uniques)
+- [x] TrafficChart component (visitors over time)
+- [x] TopPostsTable component (popular posts ranking)
+- [x] API route: `GET /api/blog/analytics`
 
 ---
 
-## Phase 4: PostHog Integration (Tennis Scorigami)
+## Phase 4: PostHog Integration (Tennis Scorigami) ✅
 
 ### 4.1 PostHog API Setup
-- [ ] Create PostHog client (`/lib/posthog.ts`)
-- [ ] Configure API key and project ID
-- [ ] Implement query builder for insights
+- [x] Create PostHog client (`/lib/posthog.ts`)
+- [x] Configure API key and project ID
+- [x] Implement query builder for insights
 
 ### 4.2 Tennis Scorigami Metrics
-- [ ] Fetch daily/weekly/monthly visitors
-- [ ] Fetch daily/weekly/monthly unique visitors
-- [ ] Fetch session duration and bounce rate (bonus)
+- [x] Fetch daily/weekly/monthly visitors
+- [x] Fetch daily/weekly/monthly unique visitors
+- [x] Fetch session duration and bounce rate (bonus)
 
 ### 4.3 Tennis Scorigami Dashboard Section
-- [ ] Create `/app/tennis-scorigami/page.tsx`
-- [ ] VisitorStatsCard component
-- [ ] TrafficChart component
-- [ ] API route: `GET /api/tennis-scorigami/analytics`
+- [x] Create `/app/(dashboard)/tennis-scorigami/page.tsx`
+- [x] VisitorStatsCard component
+- [x] TrafficChart component
+- [x] API route: `GET /api/tennis-scorigami/analytics`
 
 ---
 
-## Phase 5: Supabase Integration (Scrollz.co)
+## Phase 5: Supabase Integration (Scrollz.co) ⏸️ Deferred
+
+*Note: This phase has been deferred. A stub page exists at `/app/(dashboard)/scrollz/page.tsx` but the backend integration has been skipped for now.*
 
 ### 5.1 Supabase Setup
 - [ ] Create Supabase client (`/lib/supabase.ts`)
@@ -109,7 +150,7 @@
 - [ ] Fetch notification count or changelog items
 
 ### 5.4 Scrollz Dashboard Section
-- [ ] Create `/app/scrollz/page.tsx`
+- [x] Create `/app/(dashboard)/scrollz/page.tsx` (stub only)
 - [ ] DownloadStatsCard component
 - [ ] ActiveUsersCard component (DAU/WAU/MAU)
 - [ ] CannyFeedbackList component
@@ -117,77 +158,90 @@
 
 ---
 
-## Phase 6: Package Stats (walk-in-the-parquet)
+## Phase 6: Package Stats & App Store Connect ✅
 
 ### 6.1 Package Registry APIs
-- [ ] Determine package registries (npm, PyPI, or both)
-- [ ] Create npm stats client (`/lib/npm-stats.ts`) if applicable
-- [ ] Create PyPI stats client (`/lib/pypi-stats.ts`) if applicable
+- [x] Determine package registries (npm, PyPI, crates.io)
+- [x] Create npm stats client (`/lib/packages/npm.ts`)
+- [x] Create PyPI stats client (`/lib/packages/pypi.ts`)
+- [x] Create crates.io stats client (`/lib/packages/crates.ts`)
 
 ### 6.2 Download Metrics
-- [ ] Fetch total downloads
-- [ ] Fetch download trends (daily/weekly)
+- [x] Fetch total downloads
+- [x] Fetch download trends (daily/weekly)
 
-### 6.3 Page Analytics
-- [ ] Determine analytics provider for walk-in-the-parquet site
-- [ ] Integrate with appropriate API (GA, PostHog, etc.)
-- [ ] Fetch DAU/WAU/MAU for the page
+### 6.3 Published Packages Dashboard
+- [x] Create `/app/(dashboard)/published-packages/page.tsx`
+- [x] DownloadStatsCard component
+- [x] DownloadTrendChart component
+- [x] API route: `GET /api/packages/analytics`
 
-### 6.4 Package Dashboard Section
-- [ ] Create `/app/walk-in-the-parquet/page.tsx`
-- [ ] DownloadStatsCard component
-- [ ] DownloadTrendChart component
-- [ ] PageVisitorsCard component
-- [ ] API route: `GET /api/walk-in-the-parquet/stats`
+### 6.4 Walk in the Parquet Page
+- [x] Create `/app/(dashboard)/walk-in-the-parquet/page.tsx`
+- [x] Package download stats integration
+- [x] API route: `GET /api/walk-in-the-parquet/analytics`
+
+### 6.5 App Store Connect Integration (Bonus - Not in Original Plan)
+- [x] Create App Store Connect client (`/lib/app-store-connect.ts`)
+- [x] Implement JWT authentication with Apple API keys
+- [x] Fetch iOS app downloads, revenue, ratings
+- [x] Integrate with Walk in the Parquet dashboard
 
 ---
 
 ## Phase 7: Unified Dashboard Home
 
-### 7.1 Overview Page
-- [ ] Create `/app/page.tsx` (dashboard home)
-- [ ] Summary cards for each data source
-- [ ] "At a glance" metrics (total visitors across all properties)
-- [ ] Recent activity feed
+### 7.1 Overview Page ✅
+- [x] Create `/app/(dashboard)/page.tsx` (dashboard home)
+- [x] Summary cards for each data source
+- [x] "At a glance" metrics (total visitors across all properties)
+- [x] Recent activity feed
 
-### 7.2 Alerts & Anomalies
+### 7.2 Alerts & Anomalies (Pending)
 - [ ] Define anomaly detection rules (e.g., >2 std dev from mean)
 - [ ] AlertBanner component for important notifications
 - [ ] AlertsList component showing recent anomalies
 
 ---
 
-## Phase 8: Authentication & Security
+## Phase 8: Authentication & Security ⚠️
 
-### 8.1 Auth Setup
+*Note: For a personal dashboard, full auth may not be needed. Focus on ensuring API keys stay server-side and the deployment is secure.*
+
+### 8.1 Auth Setup (Optional for Personal Use)
 - [ ] Install and configure NextAuth.js
 - [ ] Set up authentication provider (GitHub OAuth or simple password)
 - [ ] Create login page
 - [ ] Protect all dashboard routes with middleware
 
-### 8.2 API Security
-- [ ] Add authentication checks to all API routes
-- [ ] Rate limiting on API routes (optional)
+### 8.2 API Security (Required)
+- [ ] Audit all API routes for server-only key access
+- [ ] Verify no API keys leak to client-side bundle
+- [ ] Rate limiting on API routes
+- [ ] Review security headers (CORS, CSP)
 
 ---
 
 ## Phase 9: Deployment & Polish
 
-### 9.1 Deployment
+### 9.1 Security-First Vercel Deployment
+- [ ] Run `pnpm build` and verify no client-side key exposure
 - [ ] Configure Vercel project
-- [ ] Set up environment variables in Vercel
+- [ ] Set up environment variables securely in Vercel dashboard
 - [ ] Deploy to production
+- [ ] Verify all API routes work in production
 - [ ] Set up custom domain (optional)
 
 ### 9.2 Polish
 - [ ] Add error boundaries and fallback UI
 - [ ] Improve loading states
-- [ ] Add refresh buttons for manual data reload
+- [x] Add refresh buttons for manual data reload
 - [ ] Mobile responsive tweaks
-- [ ] Performance optimization (caching strategies)
+- [x] Performance optimization (TanStack Query caching)
 
 ### 9.3 Documentation
-- [ ] Update README with setup instructions
+- [x] Update README with setup instructions
+- [x] CLAUDE.md with architecture overview
 - [ ] Document how to add new data sources
 - [ ] Create configuration guide for other developers
 
@@ -208,25 +262,58 @@
 
 ---
 
-## Priority Order (Recommended)
+## What's Been Built
 
-1. **Phase 1** - Foundation (required for everything else)
-2. **Phase 2** - GitHub (simplest API, good for proving out the pattern)
-3. **Phase 7.1** - Basic home page (ties it together early)
-4. **Phase 3** - Google Analytics (blog metrics)
-5. **Phase 4** - PostHog (similar pattern to GA)
-6. **Phase 5** - Supabase/Scrollz (more complex, app-specific)
-7. **Phase 6** - Package stats (depends on registry used)
-8. **Phase 8** - Auth (can be added once core functionality works)
-9. **Phase 9** - Deploy & polish
-10. **Phase 10** - Future extensibility
+### Dashboard Pages (7 total)
+1. **Overview** - `/app/(dashboard)/page.tsx` - Aggregated metrics across all sources
+2. **Blog** - `/app/(dashboard)/blog/page.tsx` - Google Analytics for blog
+3. **GitHub** - `/app/(dashboard)/github/page.tsx` - Repo stars and velocity
+4. **Tennis Scorigami** - `/app/(dashboard)/tennis-scorigami/page.tsx` - PostHog analytics
+5. **Scrollz** - `/app/(dashboard)/scrollz/page.tsx` - Stub page (deferred)
+6. **Walk in the Parquet** - `/app/(dashboard)/walk-in-the-parquet/page.tsx` - Package + App Store stats
+7. **Published Packages** - `/app/(dashboard)/published-packages/page.tsx` - npm/PyPI/crates.io
+
+### API Routes (5 total)
+- `GET /api/blog/analytics`
+- `GET /api/github/analytics`
+- `GET /api/packages/analytics`
+- `GET /api/walk-in-the-parquet/analytics`
+- `GET /api/tennis-scorigami/analytics`
+
+### Data Clients (5 total)
+- `lib/google-analytics.ts`
+- `lib/github.ts`
+- `lib/posthog.ts`
+- `lib/app-store-connect.ts`
+- `lib/packages/` (npm.ts, pypi.ts, crates.ts)
+
+### Custom Hooks (8 total)
+- `useBlogAnalytics`
+- `useGithubAnalytics`
+- `usePackagesAnalytics`
+- `useWalkInTheParquetAnalytics`
+- `useTennisScorigamiAnalytics`
+- `useOverviewAnalytics`
+- `useSidebar`
+- `useSidebarCollapseResize`
+
+### UI Features
+- Draggable/resizable sidebar with collapse
+- Dark/light mode toggle
+- Responsive component library (shadcn/ui)
+- Time series charts (Recharts)
+- Data tables with sorting
 
 ---
 
-## Open Questions
+## Resolved Questions
 
-- [ ] What is the analytics provider for walk-in-the-parquet website?
-- [ ] Is walk-in-the-parquet on npm, PyPI, or both?
-- [ ] How is Scrollz.co download data tracked? (App Store Connect API vs stored in Supabase)
-- [ ] Preferred auth method? (GitHub OAuth, magic link, simple password)
-- [ ] Any specific repos to track for GitHub stars, or all public repos?
+- **Analytics for walk-in-the-parquet**: Uses App Store Connect API for iOS app metrics
+- **Package registries**: npm, PyPI, and crates.io all supported
+- **Specific repos for GitHub**: Configured via environment variable
+- **Scrollz integration**: Deferred for now
+
+## Remaining Questions
+
+- **Auth method**: TBD if needed (personal dashboard may not require auth)
+- **Custom domain**: TBD for Vercel deployment

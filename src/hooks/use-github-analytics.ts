@@ -21,6 +21,7 @@ export interface GitHubRepository {
   languages: LanguageBreakdown[];
   isArchived: boolean;
   isFork: boolean;
+  isPrivate: boolean;
   createdAt: string;
   updatedAt: string;
   pushedAt: string;

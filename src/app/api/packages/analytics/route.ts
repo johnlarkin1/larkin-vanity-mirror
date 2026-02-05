@@ -1,7 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPackagesAnalytics } from "@/lib/packages";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
+  // Check rate limit
+  const rateLimitResult = rateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { success: false, error: "Rate limit exceeded. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": Math.ceil(
+            (rateLimitResult.resetTime - Date.now()) / 1000
+          ).toString(),
+        },
+      }
+    );
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const startDateParam = searchParams.get("startDate");
@@ -41,27 +58,14 @@ export async function GET(request: NextRequest) {
       data,
     });
   } catch (error) {
-    console.error("Error fetching packages analytics:", error);
+    console.error("Packages analytics error:", error);
 
+    // Return generic error messages - never expose internal details
     if (error instanceof Error) {
-      // Check for missing config
-      if (error.message.includes("No packages configured")) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
-          { status: 500 }
-        );
-      }
-
-      // Check for rate limit
+      // Check for rate limit from package registries
       if (error.message.includes("rate limit")) {
         return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
+          { success: false, error: "Package registry rate limit exceeded" },
           { status: 429 }
         );
       }
@@ -69,28 +73,14 @@ export async function GET(request: NextRequest) {
       // Check for package not found
       if (error.message.includes("not found")) {
         return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
+          { success: false, error: "Package not found" },
           { status: 404 }
         );
       }
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: error.message,
-        },
-        { status: 500 }
-      );
     }
 
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch packages analytics",
-      },
+      { success: false, error: "Failed to fetch packages analytics" },
       { status: 500 }
     );
   }

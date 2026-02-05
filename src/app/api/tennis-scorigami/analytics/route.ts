@@ -1,7 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchTennisScorigamiAnalytics } from "@/lib/posthog";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
+  // Check rate limit
+  const rateLimitResult = rateLimit(request);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { success: false, error: "Rate limit exceeded. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": Math.ceil(
+            (rateLimitResult.resetTime - Date.now()) / 1000
+          ).toString(),
+        },
+      }
+    );
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
@@ -37,28 +54,14 @@ export async function GET(request: NextRequest) {
       data,
     });
   } catch (error) {
-    console.error("Error fetching tennis scorigami analytics:", error);
+    console.error("Tennis scorigami analytics error:", error);
 
-    // Check for specific error types
+    // Return generic error messages - never expose internal details
     if (error instanceof Error) {
-      // Check for missing env vars
-      if (error.message.includes("Missing POSTHOG_")) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
-          { status: 500 }
-        );
-      }
-
       // Check for authentication errors
       if (error.message.includes("authentication failed")) {
         return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
+          { success: false, error: "Analytics authentication failed" },
           { status: 401 }
         );
       }
@@ -66,40 +69,22 @@ export async function GET(request: NextRequest) {
       // Check for project not found
       if (error.message.includes("project not found")) {
         return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
+          { success: false, error: "Analytics project not found" },
           { status: 404 }
         );
       }
 
-      // Check for rate limiting
+      // Check for rate limiting from PostHog
       if (error.message.includes("rate limit")) {
         return NextResponse.json(
-          {
-            success: false,
-            error: error.message,
-          },
+          { success: false, error: "Analytics API rate limit exceeded" },
           { status: 429 }
         );
       }
-
-      // Return the error message for other errors
-      return NextResponse.json(
-        {
-          success: false,
-          error: error.message,
-        },
-        { status: 500 }
-      );
     }
 
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch analytics data",
-      },
+      { success: false, error: "Failed to fetch analytics data" },
       { status: 500 }
     );
   }
