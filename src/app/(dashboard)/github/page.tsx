@@ -1,12 +1,18 @@
 "use client";
 
-import { Star, TrendingUp, GitFork, Eye, FolderGit2, RefreshCw, ExternalLink } from "lucide-react";
+import { Star, TrendingUp, GitFork, Eye, FolderGit2, RefreshCw, ExternalLink, Calendar } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { MetricCard } from "@/components/data-display/metric-card";
 import { DataTable } from "@/components/data-display/data-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useGitHubAnalytics, type GitHubRepository } from "@/hooks/use-github-analytics";
+import { useGitHubAnalytics, type GitHubRepository, type LanguageBreakdown } from "@/hooks/use-github-analytics";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -37,6 +43,60 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
+function LanguageBar({ languages }: { languages: LanguageBreakdown[] }) {
+  if (languages.length === 0) {
+    return <span className="text-muted-foreground">-</span>;
+  }
+
+  const top3 = languages.slice(0, 3);
+
+  return (
+    <TooltipProvider>
+      <div className="flex flex-col gap-1.5 min-w-[120px]">
+        {/* Stacked bar */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
+              {languages.map((lang, i) => {
+                const colorClass = languageColors[lang.language] ?? "bg-gray-500";
+                return (
+                  <div
+                    key={i}
+                    className={colorClass}
+                    style={{ width: `${lang.percentage}%` }}
+                  />
+                );
+              })}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            <div className="space-y-1">
+              {languages.map((lang, i) => (
+                <div key={i} className="flex items-center justify-between gap-4 text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <span className={`h-2 w-2 rounded-full ${languageColors[lang.language] ?? "bg-gray-500"}`} />
+                    {lang.language}
+                  </span>
+                  <span className="text-muted-foreground">{lang.percentage}%</span>
+                </div>
+              ))}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+        {/* Top 3 languages with percentages */}
+        <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+          {top3.map((lang, i) => (
+            <span key={i} className="flex items-center gap-1">
+              <span className={`h-1.5 w-1.5 rounded-full ${languageColors[lang.language] ?? "bg-gray-500"}`} />
+              {lang.language} {lang.percentage}%
+            </span>
+          ))}
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+}
+
 const columns: ColumnDef<GitHubRepository>[] = [
   {
     accessorKey: "rank",
@@ -63,6 +123,7 @@ const columns: ColumnDef<GitHubRepository>[] = [
             rel="noopener noreferrer"
             className="flex items-center gap-1 font-medium hover:underline"
           >
+            {repo.isFork && <GitFork className="h-3 w-3 text-muted-foreground" />}
             {repo.name}
             <ExternalLink className="h-3 w-3" />
           </a>
@@ -76,19 +137,9 @@ const columns: ColumnDef<GitHubRepository>[] = [
     },
   },
   {
-    accessorKey: "language",
-    header: "Language",
-    cell: ({ row }) => {
-      const language = row.original.language;
-      if (!language) return <span className="text-muted-foreground">-</span>;
-      const colorClass = languageColors[language] ?? "bg-gray-500";
-      return (
-        <Badge variant="secondary" className="gap-1.5">
-          <span className={`h-2 w-2 rounded-full ${colorClass}`} />
-          {language}
-        </Badge>
-      );
-    },
+    accessorKey: "languages",
+    header: "Languages",
+    cell: ({ row }) => <LanguageBar languages={row.original.languages} />,
   },
   {
     accessorKey: "stars",
@@ -116,10 +167,38 @@ const columns: ColumnDef<GitHubRepository>[] = [
     accessorKey: "isArchived",
     header: "Status",
     cell: ({ row }) => {
-      if (row.original.isArchived) {
-        return <Badge variant="outline">Archived</Badge>;
+      const badges = [];
+      if (row.original.isFork) {
+        badges.push(
+          <Badge key="fork" variant="secondary" className="gap-1">
+            <GitFork className="h-3 w-3" />
+            Fork
+          </Badge>
+        );
       }
-      return <Badge variant="default">Active</Badge>;
+      if (row.original.isArchived) {
+        badges.push(<Badge key="archived" variant="outline">Archived</Badge>);
+      } else {
+        badges.push(<Badge key="active" variant="default">Active</Badge>);
+      }
+      return <div className="flex gap-1">{badges}</div>;
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: () => (
+      <div className="flex items-center gap-1">
+        <Calendar className="h-4 w-4" />
+        Created
+      </div>
+    ),
+    cell: ({ row }) => {
+      const date = new Date(row.original.createdAt);
+      return (
+        <span className="text-muted-foreground">
+          {date.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+        </span>
+      );
     },
   },
 ];
@@ -209,7 +288,7 @@ export default function GitHubPage() {
         filterColumn="name"
         filterPlaceholder="Filter repositories..."
         enablePagination
-        pageSize={10}
+        pageSize={20}
       />
     </div>
   );

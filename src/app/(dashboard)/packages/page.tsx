@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, TrendingUp, Boxes, Trophy, RefreshCw, ExternalLink } from "lucide-react";
+import { Download, TrendingUp, Boxes, Trophy, RefreshCw, ExternalLink, Calendar } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { MetricCard } from "@/components/data-display/metric-card";
 import { DataTable } from "@/components/data-display/data-table";
@@ -110,6 +110,25 @@ const columns: ColumnDef<PackageDownloads>[] = [
     cell: ({ row }) => (
       <span className="font-medium">{formatNumber(row.original.totalDownloads)}</span>
     ),
+  },
+  {
+    accessorKey: "createdAt",
+    header: () => (
+      <div className="flex items-center gap-1">
+        <Calendar className="h-4 w-4" />
+        Released
+      </div>
+    ),
+    cell: ({ row }) => {
+      const createdAt = row.original.createdAt;
+      if (!createdAt) return <span className="text-muted-foreground">-</span>;
+      const date = new Date(createdAt);
+      return (
+        <span className="text-muted-foreground">
+          {date.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+        </span>
+      );
+    },
   },
 ];
 

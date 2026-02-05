@@ -145,7 +145,15 @@ export async function fetchPackagesAnalytics(dateRange: DateRange): Promise<Pack
       packageCount,
       weeklyTrend,
     },
-    packages: allPackages.sort((a, b) => b.totalDownloads - a.totalDownloads),
+    packages: allPackages.sort((a, b) => {
+      if (b.totalDownloads !== a.totalDownloads) {
+        return b.totalDownloads - a.totalDownloads;
+      }
+      // Secondary sort by creation date (newest first)
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    }),
     timeSeries,
     topPackage: topPackage
       ? {

@@ -35,6 +35,14 @@ interface NpmRangeResponse {
   package: string;
 }
 
+interface NpmRegistryResponse {
+  time?: {
+    created?: string;
+    modified?: string;
+    [version: string]: string | undefined;
+  };
+}
+
 /**
  * Encode package name for npm API (handles scoped packages)
  * @scope/name -> %40scope%2Fname
@@ -66,19 +74,31 @@ export async function fetchNpmPackage(
 
   const encodedName = encodePackageName(packageName);
 
-  // Fetch daily downloads for the date range
-  const response = await fetch(
-    `https://api.npmjs.org/downloads/range/${start}:${end}/${encodedName}`
-  );
+  // Fetch daily downloads and registry info in parallel
+  const [downloadResponse, registryResponse] = await Promise.all([
+    fetch(`https://api.npmjs.org/downloads/range/${start}:${end}/${encodedName}`),
+    fetch(`https://registry.npmjs.org/${encodedName}`),
+  ]);
 
-  if (!response.ok) {
-    if (response.status === 404) {
+  if (!downloadResponse.ok) {
+    if (downloadResponse.status === 404) {
       throw new Error(`npm package '${packageName}' not found`);
     }
     throw new Error(`npm API error for package '${packageName}'`);
   }
 
-  const data: NpmRangeResponse = await response.json();
+  const data: NpmRangeResponse = await downloadResponse.json();
+
+  // Try to get creation date from registry
+  let createdAt: string | null = null;
+  if (registryResponse.ok) {
+    try {
+      const registryData: NpmRegistryResponse = await registryResponse.json();
+      createdAt = registryData.time?.created ?? null;
+    } catch {
+      // Ignore registry errors, just leave createdAt as null
+    }
+  }
 
   // Calculate totals from the daily data
   const dailyDownloads = data.downloads.map((d) => ({
@@ -104,6 +124,7 @@ export async function fetchNpmPackage(
     monthlyDownloads,
     dailyDownloads,
     url: `https://www.npmjs.com/package/${packageName}`,
+    createdAt,
   };
 
   setCache(cacheKey, result);

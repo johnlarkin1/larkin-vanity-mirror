@@ -60,6 +60,12 @@ interface GitHubApiRepo {
 }
 
 // Public interfaces
+export interface LanguageBreakdown {
+  language: string;
+  bytes: number;
+  percentage: number;
+}
+
 export interface GitHubRepository {
   id: number;
   name: string;
@@ -70,6 +76,7 @@ export interface GitHubRepository {
   forks: number;
   watchers: number;
   language: string | null;
+  languages: LanguageBreakdown[];
   isArchived: boolean;
   isFork: boolean;
   createdAt: string;
@@ -122,6 +129,46 @@ async function fetchWithAuth(url: string, token?: string): Promise<Response> {
   return response;
 }
 
+/**
+ * Fetch language breakdown for a repository
+ * Returns bytes per language, which we convert to percentages
+ */
+async function fetchRepoLanguages(
+  fullName: string,
+  token?: string
+): Promise<LanguageBreakdown[]> {
+  const cacheKey = `languages:${fullName}`;
+  const cached = getCached<LanguageBreakdown[]>(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const url = `https://api.github.com/repos/${fullName}/languages`;
+    const response = await fetchWithAuth(url, token);
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data: Record<string, number> = await response.json();
+    const totalBytes = Object.values(data).reduce((sum, bytes) => sum + bytes, 0);
+
+    if (totalBytes === 0) return [];
+
+    const languages = Object.entries(data)
+      .map(([language, bytes]) => ({
+        language,
+        bytes,
+        percentage: Math.round((bytes / totalBytes) * 1000) / 10, // One decimal place
+      }))
+      .sort((a, b) => b.bytes - a.bytes);
+
+    setCache(cacheKey, languages);
+    return languages;
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchUserRepositories(
   username: string,
   token?: string
@@ -153,9 +200,7 @@ export async function fetchUserRepositories(
     if (data.length === 0) break;
 
     repos.push(
-      ...data
-        .filter((repo) => !repo.fork) // Exclude forks from the count
-        .map((repo) => ({
+      ...data.map((repo) => ({
           id: repo.id,
           name: repo.name,
           fullName: repo.full_name,
@@ -165,6 +210,7 @@ export async function fetchUserRepositories(
           forks: repo.forks_count,
           watchers: repo.watchers_count,
           language: repo.language,
+          languages: [] as LanguageBreakdown[], // Will be populated below
           isArchived: repo.archived,
           isFork: repo.fork,
           createdAt: repo.created_at,
@@ -177,8 +223,20 @@ export async function fetchUserRepositories(
     page++;
   }
 
-  // Sort by stars descending
-  repos.sort((a, b) => b.stars - a.stars);
+  // Sort by stars descending, then by creation date descending
+  repos.sort((a, b) => {
+    if (b.stars !== a.stars) return b.stars - a.stars;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  // Fetch language breakdowns in parallel for all repos
+  const languagePromises = repos.map((repo) => fetchRepoLanguages(repo.fullName, token));
+  const languageResults = await Promise.all(languagePromises);
+
+  // Assign language breakdowns to repos
+  repos.forEach((repo, index) => {
+    repo.languages = languageResults[index];
+  });
 
   setCache(cacheKey, repos);
   return repos;
