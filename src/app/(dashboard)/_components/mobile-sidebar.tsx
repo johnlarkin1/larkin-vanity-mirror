@@ -2,64 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  FileText,
-  Github,
-  Gamepad2,
-  Smartphone,
-  Package,
-  Boxes,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-const navigation = [
-  {
-    name: "Overview",
-    href: "/",
-    icon: LayoutDashboard,
-  },
-  {
-    name: "Blog",
-    href: "/blog",
-    icon: FileText,
-    description: "johnlarkin1.github.io",
-  },
-  {
-    name: "GitHub",
-    href: "/github",
-    icon: Github,
-    description: "Star tracking",
-  },
-  {
-    name: "Tennis Scorigami",
-    href: "/tennis-scorigami",
-    icon: Gamepad2,
-    description: "PostHog analytics",
-  },
-  {
-    name: "Scrollz",
-    href: "/scrollz",
-    icon: Smartphone,
-    description: "iOS app metrics",
-  },
-  {
-    name: "Walk in the Parquet",
-    href: "/walk-in-the-parquet",
-    icon: Package,
-    description: "Package downloads",
-  },
-  {
-    name: "Published Packages",
-    href: "/packages",
-    icon: Boxes,
-    description: "npm, PyPI, Cargo",
-  },
-];
+import { useSidebarOrder } from "@/hooks/use-sidebar-order";
 
 export function MobileSidebar() {
   const pathname = usePathname();
+  const { navigation } = useSidebarOrder();
 
   return (
     <div className="flex h-full flex-col bg-sidebar">
@@ -74,7 +23,7 @@ export function MobileSidebar() {
             const isActive = pathname === item.href;
             return (
               <Link
-                key={item.name}
+                key={item.id}
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
@@ -83,7 +32,12 @@ export function MobileSidebar() {
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
               >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
+                <item.icon
+                  className={cn(
+                    "h-5 w-5 flex-shrink-0",
+                    isActive ? "text-sidebar-accent-foreground" : item.iconColor
+                  )}
+                />
                 <div className="flex flex-col">
                   <span className="font-medium">{item.name}</span>
                   {item.description && (
