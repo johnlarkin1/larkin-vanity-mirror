@@ -13,13 +13,13 @@ interface ServiceAccountCredentials {
   client_x509_cert_url: string;
 }
 
-// Validate required environment variables
+// Validate required environment variables for blog analytics
 function getConfig() {
-  const propertyId = process.env.GOOGLE_ANALYTICS_PROPERTY_ID;
+  const propertyId = process.env.BLOG_GA_PROPERTY_ID;
   const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
   if (!propertyId) {
-    throw new Error("Missing GOOGLE_ANALYTICS_PROPERTY_ID environment variable");
+    throw new Error("Missing BLOG_GA_PROPERTY_ID environment variable");
   }
 
   if (!serviceAccountKey) {
@@ -31,7 +31,7 @@ function getConfig() {
   try {
     const decoded = Buffer.from(serviceAccountKey, "base64").toString("utf-8");
     credentials = JSON.parse(decoded);
-  } catch (e) {
+  } catch {
     throw new Error(
       "Failed to parse GOOGLE_SERVICE_ACCOUNT_KEY. Ensure it is valid base64-encoded JSON."
     );
@@ -207,7 +207,6 @@ async function fetchTimeSeries(
 function formatDate(dateString: string): string {
   // GA4 returns dates as YYYYMMDD, convert to more readable format
   if (dateString.length === 8) {
-    const year = dateString.slice(0, 4);
     const month = dateString.slice(4, 6);
     const day = dateString.slice(6, 8);
     return `${month}/${day}`;
@@ -256,11 +255,15 @@ async function fetchTopPages(
   });
 }
 
-export async function fetchBlogAnalytics(
+/**
+ * Fetch analytics for a specific GA4 property.
+ * Use this for properties other than the default blog property.
+ */
+export async function fetchAnalyticsForProperty(
+  propertyId: string,
   startDate: string,
   endDate: string
 ): Promise<BlogAnalyticsData> {
-  const { propertyId } = getConfig();
   const client = getClient();
 
   // Calculate previous period for comparison
@@ -288,4 +291,12 @@ export async function fetchBlogAnalytics(
     timeSeries,
     topPages,
   };
+}
+
+export async function fetchBlogAnalytics(
+  startDate: string,
+  endDate: string
+): Promise<BlogAnalyticsData> {
+  const { propertyId } = getConfig();
+  return fetchAnalyticsForProperty(propertyId, startDate, endDate);
 }
