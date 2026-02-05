@@ -13,6 +13,7 @@ export interface PackageDownloads {
   monthlyDownloads: number;
   dailyDownloads: Array<{ date: string; downloads: number }>;
   url: string;
+  createdAt: string | null;
 }
 
 export interface PackagesAnalyticsData {

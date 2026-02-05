@@ -39,6 +39,7 @@ interface CratesApiResponse {
     description: string;
     homepage: string | null;
     repository: string | null;
+    created_at: string;
   };
 }
 
@@ -96,6 +97,7 @@ export async function fetchCratesPackage(
     monthlyDownloads: estimatedMonthly,
     dailyDownloads: [], // No daily breakdown available from crates.io
     url: `https://crates.io/crates/${packageName}`,
+    createdAt: data.crate.created_at ?? null,
   };
 
   setCache(cacheKey, result);

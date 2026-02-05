@@ -2,6 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+export interface LanguageBreakdown {
+  language: string;
+  bytes: number;
+  percentage: number;
+}
+
 export interface GitHubRepository {
   id: number;
   name: string;
@@ -12,6 +18,7 @@ export interface GitHubRepository {
   forks: number;
   watchers: number;
   language: string | null;
+  languages: LanguageBreakdown[];
   isArchived: boolean;
   isFork: boolean;
   createdAt: string;

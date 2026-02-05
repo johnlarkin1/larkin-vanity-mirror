@@ -38,6 +38,18 @@ interface PyPIOverallResponse {
   type: "overall_downloads";
 }
 
+interface PyPIPackageResponse {
+  info: {
+    name: string;
+    version: string;
+  };
+  releases: {
+    [version: string]: Array<{
+      upload_time_iso_8601: string;
+    }>;
+  };
+}
+
 /**
  * Format date as YYYY-MM-DD for comparison
  */
@@ -60,19 +72,45 @@ export async function fetchPyPIPackage(
   const cached = getCached<PackageDownloads>(cacheKey);
   if (cached) return cached;
 
-  // Fetch overall history (PyPI Stats keeps ~180 days)
-  const response = await fetch(
-    `https://pypistats.org/api/packages/${packageName}/overall?mirrors=true`
-  );
+  // Fetch overall history and package info in parallel
+  const [statsResponse, packageResponse] = await Promise.all([
+    fetch(`https://pypistats.org/api/packages/${packageName}/overall?mirrors=true`),
+    fetch(`https://pypi.org/pypi/${packageName}/json`),
+  ]);
 
-  if (!response.ok) {
-    if (response.status === 404) {
+  if (!statsResponse.ok) {
+    if (statsResponse.status === 404) {
       throw new Error(`PyPI package '${packageName}' not found`);
     }
     throw new Error(`PyPI API error for package '${packageName}'`);
   }
 
-  const overallData: PyPIOverallResponse = await response.json();
+  const overallData: PyPIOverallResponse = await statsResponse.json();
+
+  // Try to find earliest release date
+  let createdAt: string | null = null;
+  if (packageResponse.ok) {
+    try {
+      const packageData: PyPIPackageResponse = await packageResponse.json();
+      // Find the earliest upload time across all releases
+      let earliest: Date | null = null;
+      for (const files of Object.values(packageData.releases)) {
+        for (const file of files) {
+          if (file.upload_time_iso_8601) {
+            const uploadDate = new Date(file.upload_time_iso_8601);
+            if (!earliest || uploadDate < earliest) {
+              earliest = uploadDate;
+            }
+          }
+        }
+      }
+      if (earliest) {
+        createdAt = earliest.toISOString();
+      }
+    } catch {
+      // Ignore errors, just leave createdAt as null
+    }
+  }
 
   // Filter for "without_mirrors" category, fallback to all data if not found
   const withoutMirrors = overallData.data.filter((d) => d.category === "without_mirrors");
@@ -109,6 +147,7 @@ export async function fetchPyPIPackage(
     monthlyDownloads,
     dailyDownloads,
     url: `https://pypi.org/project/${packageName}/`,
+    createdAt,
   };
 
   setCache(cacheKey, result);
