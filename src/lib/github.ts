@@ -54,6 +54,7 @@ interface GitHubApiRepo {
   language: string | null;
   archived: boolean;
   fork: boolean;
+  private: boolean;
   created_at: string;
   updated_at: string;
   pushed_at: string;
@@ -79,6 +80,7 @@ export interface GitHubRepository {
   languages: LanguageBreakdown[];
   isArchived: boolean;
   isFork: boolean;
+  isPrivate: boolean;
   createdAt: string;
   updatedAt: string;
   pushedAt: string;
@@ -182,7 +184,11 @@ export async function fetchUserRepositories(
   const perPage = 100;
 
   while (true) {
-    const url = `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}&type=owner&sort=updated`;
+    // Use /user/repos endpoint with token to include private repos
+    // Falls back to /users/{username}/repos for unauthenticated requests (public only)
+    const url = token
+      ? `https://api.github.com/user/repos?per_page=${perPage}&page=${page}&affiliation=owner&visibility=all&sort=updated`
+      : `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}&type=owner&sort=updated`;
     const response = await fetchWithAuth(url, token);
 
     if (!response.ok) {
