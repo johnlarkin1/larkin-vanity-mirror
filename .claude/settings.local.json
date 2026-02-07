@@ -10,7 +10,8 @@
       "Bash(curl:*)",
       "Bash(pnpm lint:*)",
       "Bash(pnpm build:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "mcp__plugin_playwright_playwright__browser_navigate"
     ]
   }
 }

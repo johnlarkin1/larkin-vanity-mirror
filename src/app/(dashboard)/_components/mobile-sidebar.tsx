@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,13 @@ export function MobileSidebar() {
     <div className="flex h-full flex-col bg-sidebar">
       <div className="flex h-16 items-center border-b border-sidebar-border px-6">
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-semibold text-sidebar-foreground">Vanity Mirror</span>
+          <Image
+            src="/android-chrome-48x48.png"
+            alt="Larkin Vanity Mirror"
+            width={32}
+            height={32}
+          />
+          <span className="text-xl font-semibold text-sidebar-foreground">Larkin Vanity Mirror</span>
         </Link>
       </div>
       <ScrollArea className="flex-1">

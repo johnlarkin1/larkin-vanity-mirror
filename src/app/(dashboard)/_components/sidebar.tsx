@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -106,17 +107,20 @@ export function Sidebar() {
           href="/"
           className={cn("flex items-center gap-2", isCollapsed && "justify-center w-full")}
         >
+          <Image
+            src="/android-chrome-48x48.png"
+            alt="Larkin Vanity Mirror"
+            width={32}
+            height={32}
+          />
           <span
             className={cn(
               "text-xl font-semibold text-sidebar-foreground transition-opacity",
               isCollapsed && "sr-only"
             )}
           >
-            Vanity Mirror
+            Larkin Vanity Mirror
           </span>
-          {isCollapsed && (
-            <span className="text-xl font-semibold text-sidebar-foreground">VM</span>
-          )}
         </Link>
       </div>
 
