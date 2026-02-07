@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Menu, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -31,7 +32,15 @@ export function Header() {
             <MobileSidebar />
           </SheetContent>
         </Sheet>
-        <h1 className="text-lg font-semibold lg:hidden">Vanity Mirror</h1>
+        <div className="flex items-center gap-2 lg:hidden">
+          <Image
+            src="/android-chrome-48x48.png"
+            alt="Larkin Vanity Mirror"
+            width={32}
+            height={32}
+          />
+          <h1 className="text-lg font-semibold">Larkin Vanity Mirror</h1>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
