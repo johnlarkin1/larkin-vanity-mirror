@@ -162,7 +162,7 @@ export default function PackagesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Published Packages</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">Published Packages</h1>
           <p className="text-muted-foreground">
             Download statistics from npm, PyPI, and crates.io
           </p>
@@ -190,7 +190,7 @@ export default function PackagesPage() {
         </Alert>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <MetricCard
           title="Total Downloads"
           value={data ? formatNumber(data.metrics.totalDownloads) : "--"}

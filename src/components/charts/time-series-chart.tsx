@@ -153,7 +153,8 @@ export function TimeSeriesChart({
         <CardTitle className="text-base font-semibold">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={height}>
+        <div className="h-[220px] sm:h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
           <ChartComponent
             data={data}
             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
@@ -270,6 +271,7 @@ export function TimeSeriesChart({
             })}
           </ChartComponent>
         </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );

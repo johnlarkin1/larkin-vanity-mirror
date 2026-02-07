@@ -304,7 +304,7 @@ export default function BlogPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Blog Analytics</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">Blog Analytics</h1>
           <p className="text-muted-foreground">
             Metrics for johnlarkin1.github.io from Google Analytics
           </p>
@@ -335,7 +335,7 @@ export default function BlogPage() {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <MetricCard
           title="Total Visitors"
           value={isLoading ? "--" : data?.metrics.visitors.value.toLocaleString() ?? "--"}

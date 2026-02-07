@@ -11,7 +11,9 @@
       "Bash(pnpm lint:*)",
       "Bash(pnpm build:*)",
       "Bash(cat:*)",
-      "mcp__plugin_playwright_playwright__browser_navigate"
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "Skill(generate-pr)",
+      "Bash(git add:*)"
     ]
   }
 }

@@ -62,7 +62,7 @@ export function MetricCard({
         {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-xl font-bold sm:text-2xl">{value}</div>
         {(trend !== undefined || trendLabel) && (
           <p className={cn("mt-1 flex items-center gap-1 text-xs", getTrendColor())}>
             {trend !== undefined && getTrendIcon()}

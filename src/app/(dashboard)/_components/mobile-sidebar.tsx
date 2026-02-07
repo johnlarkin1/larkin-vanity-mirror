@@ -7,7 +7,11 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSidebarOrder } from "@/hooks/use-sidebar-order";
 
-export function MobileSidebar() {
+interface MobileSidebarProps {
+  onLinkClick?: () => void;
+}
+
+export function MobileSidebar({ onLinkClick }: MobileSidebarProps) {
   const pathname = usePathname();
   const { navigation } = useSidebarOrder();
 
@@ -21,7 +25,7 @@ export function MobileSidebar() {
             width={32}
             height={32}
           />
-          <span className="text-xl font-semibold text-sidebar-foreground">Larkin Vanity Mirror</span>
+          <span className="text-lg font-semibold text-sidebar-foreground">Larkin Vanity Mirror</span>
         </Link>
       </div>
       <ScrollArea className="flex-1">
@@ -32,6 +36,7 @@ export function MobileSidebar() {
               <Link
                 key={item.id}
                 href={item.href}
+                onClick={onLinkClick}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                   isActive

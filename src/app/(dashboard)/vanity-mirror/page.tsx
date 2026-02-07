@@ -313,7 +313,7 @@ export default function VanityMirrorPage() {
         <div className="flex items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">Vanity Mirror Dashboard</h1>
+              <h1 className="text-2xl font-bold sm:text-3xl">Vanity Mirror Dashboard</h1>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -358,7 +358,7 @@ export default function VanityMirrorPage() {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <MetricCard
           title="Total Visitors"
           value={isLoading ? "--" : data?.metrics.visitors.value.toLocaleString() ?? "--"}
