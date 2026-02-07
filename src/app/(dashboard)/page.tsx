@@ -23,9 +23,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard Overview</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">Dashboard Overview</h1>
           <p className="text-muted-foreground">
             Your personal analytics at a glance
           </p>

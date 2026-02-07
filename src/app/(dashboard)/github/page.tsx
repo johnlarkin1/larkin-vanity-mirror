@@ -228,9 +228,9 @@ export default function GitHubPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">GitHub Metrics</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">GitHub Metrics</h1>
           <p className="text-muted-foreground">
             Star tracking and repository analytics across your GitHub projects
           </p>
@@ -256,7 +256,7 @@ export default function GitHubPage() {
         </Alert>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <MetricCard
           title="Total Stars"
           value={data ? formatNumber(data.metrics.totalStars) : "--"}

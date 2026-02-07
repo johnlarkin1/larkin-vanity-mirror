@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Menu, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import {
 import { MobileSidebar } from "./mobile-sidebar";
 
 export function Header() {
+  const [isOpen, setIsOpen] = useState(false);
+
   const handleRefresh = () => {
     window.location.reload();
   };
@@ -20,7 +23,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b bg-background px-4 lg:px-6">
       <div className="flex items-center gap-4">
-        <Sheet>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="lg:hidden">
               <Menu className="h-5 w-5" />
@@ -29,7 +32,7 @@ export function Header() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-            <MobileSidebar />
+            <MobileSidebar onLinkClick={() => setIsOpen(false)} />
           </SheetContent>
         </Sheet>
         <div className="flex items-center gap-2 lg:hidden">

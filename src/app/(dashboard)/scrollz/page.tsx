@@ -5,7 +5,7 @@ export default function ScrollzPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Scrollz</h1>
+        <h1 className="text-2xl font-bold sm:text-3xl">Scrollz</h1>
         <p className="text-muted-foreground">iOS app metrics and analytics</p>
       </div>
 
