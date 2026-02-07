@@ -1,5 +1,9 @@
 // PostHog API client for fetching Tennis Scorigami analytics
 
+import { fetchWithTimeout } from "./fetch-with-timeout";
+
+const API_TIMEOUT = 15000; // 15 seconds
+
 interface PostHogConfig {
   apiKey: string;
   projectId: string;
@@ -121,14 +125,18 @@ async function postHogFetch<T>(
 ): Promise<T> {
   const url = `${config.host}/api/projects/${config.projectId}${endpoint}`;
 
-  const response = await fetch(url, {
-    method: body ? "POST" : "GET",
-    headers: {
-      Authorization: `Bearer ${config.apiKey}`,
-      "Content-Type": "application/json",
+  const response = await fetchWithTimeout(
+    url,
+    {
+      method: body ? "POST" : "GET",
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: body ? JSON.stringify(body) : undefined,
     },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+    API_TIMEOUT
+  );
 
   if (!response.ok) {
     if (response.status === 401) {

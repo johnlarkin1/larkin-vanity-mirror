@@ -66,6 +66,15 @@ export interface ActivityItem {
   href?: string;
 }
 
+export interface LoadingStates {
+  blog: boolean;
+  github: boolean;
+  packages: boolean;
+  tennisScorigami: boolean;
+  walkInTheParquet: boolean;
+  vanityMirror: boolean;
+}
+
 export interface OverviewAnalyticsData {
   metrics: AggregatedMetrics;
   sources: SourceInfo[];
@@ -346,15 +355,33 @@ export function useOverviewAnalytics({
     walkInTheParquetQuery.data,
   ]);
 
-  // Unified loading state
+  // Per-source loading states for progressive rendering
+  const loadingStates = useMemo((): LoadingStates => ({
+    blog: blogQuery.isLoading,
+    github: githubQuery.isLoading,
+    packages: packagesQuery.isLoading,
+    tennisScorigami: tennisScorigamiQuery.isLoading,
+    walkInTheParquet: walkInTheParquetQuery.isLoading,
+    vanityMirror: vanityMirrorQuery.isLoading,
+  }), [
+    blogQuery.isLoading,
+    githubQuery.isLoading,
+    packagesQuery.isLoading,
+    tennisScorigamiQuery.isLoading,
+    walkInTheParquetQuery.isLoading,
+    vanityMirrorQuery.isLoading,
+  ]);
+
+  // Unified loading state - true only when ALL sources are loading
   const isLoading =
-    blogQuery.isLoading ||
-    githubQuery.isLoading ||
-    packagesQuery.isLoading ||
-    tennisScorigamiQuery.isLoading ||
-    walkInTheParquetQuery.isLoading ||
+    blogQuery.isLoading &&
+    githubQuery.isLoading &&
+    packagesQuery.isLoading &&
+    tennisScorigamiQuery.isLoading &&
+    walkInTheParquetQuery.isLoading &&
     vanityMirrorQuery.isLoading;
 
+  // True if any source is still fetching
   const isFetching =
     blogQuery.isFetching ||
     githubQuery.isFetching ||
@@ -406,6 +433,7 @@ export function useOverviewAnalytics({
     data,
     isLoading,
     isFetching,
+    loadingStates,
     refetchAll,
   };
 }

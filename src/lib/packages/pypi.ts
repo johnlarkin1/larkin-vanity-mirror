@@ -1,6 +1,9 @@
 // PyPI API client for fetching package download statistics
 
+import { fetchWithTimeout } from "../fetch-with-timeout";
 import type { PackageDownloads } from "./types";
+
+const API_TIMEOUT = 15000; // 15 seconds
 
 // In-memory cache with TTL
 interface CacheEntry<T> {
@@ -74,8 +77,12 @@ export async function fetchPyPIPackage(
 
   // Fetch overall history and package info in parallel
   const [statsResponse, packageResponse] = await Promise.all([
-    fetch(`https://pypistats.org/api/packages/${packageName}/overall?mirrors=true`),
-    fetch(`https://pypi.org/pypi/${packageName}/json`),
+    fetchWithTimeout(
+      `https://pypistats.org/api/packages/${packageName}/overall?mirrors=true`,
+      {},
+      API_TIMEOUT
+    ),
+    fetchWithTimeout(`https://pypi.org/pypi/${packageName}/json`, {}, API_TIMEOUT),
   ]);
 
   if (!statsResponse.ok) {
