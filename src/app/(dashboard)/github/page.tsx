@@ -1,12 +1,14 @@
 "use client";
 
-import { Star, TrendingUp, GitFork, Eye, FolderGit2, RefreshCw, ExternalLink, Calendar, Lock, Globe } from "lucide-react";
+import { Star, TrendingUp, GitFork, Eye, FolderGit2, RefreshCw, ExternalLink, Calendar, Lock, Globe, Github } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { MetricCard } from "@/components/data-display/metric-card";
 import { DataTable } from "@/components/data-display/data-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useGitHubAnalytics, type GitHubRepository, type LanguageBreakdown } from "@/hooks/use-github-analytics";
+import { ExternalLinkButton } from "@/components/ui/external-link-button";
+import { GitHubContributionChart } from "@/components/github-contribution-chart";
 import {
   Tooltip,
   TooltipContent,
@@ -235,15 +237,23 @@ export default function GitHubPage() {
             Star tracking and repository analytics across your GitHub projects
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={isFetching}
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExternalLinkButton
+            href="https://github.com/johnlarkin1"
+            icon={<Github className="h-4 w-4" />}
+          >
+            Profile
+          </ExternalLinkButton>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isFetching}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -256,7 +266,7 @@ export default function GitHubPage() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         <MetricCard
           title="Total Stars"
           value={data ? formatNumber(data.metrics.totalStars) : "--"}
@@ -272,6 +282,11 @@ export default function GitHubPage() {
           trendLabel="vs last week"
           isLoading={isLoading}
         />
+        <div className="col-span-2 lg:col-span-1 lg:row-span-3 relative">
+          <div className="lg:absolute lg:inset-0">
+            <GitHubContributionChart />
+          </div>
+        </div>
         <MetricCard
           title="Total Forks"
           value={data ? formatNumber(data.metrics.totalForks) : "--"}
@@ -286,13 +301,15 @@ export default function GitHubPage() {
           trendLabel="All repos"
           isLoading={isLoading}
         />
-        <MetricCard
-          title="Repositories"
-          value={data?.metrics.repoCount ?? "--"}
-          icon={FolderGit2}
-          trendLabel="All repos"
-          isLoading={isLoading}
-        />
+        <div className="col-span-2 lg:col-span-2">
+          <MetricCard
+            title="Repositories"
+            value={data?.metrics.repoCount ?? "--"}
+            icon={FolderGit2}
+            trendLabel="All repos"
+            isLoading={isLoading}
+          />
+        </div>
       </div>
 
       <DataTable
