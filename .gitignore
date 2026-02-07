@@ -45,3 +45,4 @@ next-env.d.ts
 vanity-mirorr-favicon-old
 vanity-mirror-favicon-old/
 .playwright-mcp
+.claude/settings.local.json

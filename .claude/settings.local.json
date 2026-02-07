@@ -15,7 +15,9 @@
       "Skill(generate-pr)",
       "Bash(git add:*)",
       "WebFetch(domain:larkin-vanity-mirror.vercel.app)",
-      "mcp__plugin_playwright_playwright__browser_evaluate"
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(timeout 15 pnpm dev:*)"
     ]
   }
 }

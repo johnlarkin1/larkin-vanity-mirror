@@ -1,12 +1,29 @@
-import { Smartphone, Clock } from "lucide-react";
+import { Smartphone, Clock, Globe, Download } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExternalLinkButton } from "@/components/ui/external-link-button";
 
 export default function ScrollzPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">Scrollz</h1>
-        <p className="text-muted-foreground">iOS app metrics and analytics</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold sm:text-3xl">Scrollz</h1>
+          <p className="text-muted-foreground">iOS app metrics and analytics</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <ExternalLinkButton
+            href="https://scrollz.co"
+            icon={<Globe className="h-4 w-4" />}
+          >
+            Website
+          </ExternalLinkButton>
+          <ExternalLinkButton
+            href="https://apps.apple.com/us/app/scrollz-for-reddit/id1600011510"
+            icon={<Download className="h-4 w-4" />}
+          >
+            App Store
+          </ExternalLinkButton>
+        </div>
       </div>
 
       <Card className="border-dashed">
