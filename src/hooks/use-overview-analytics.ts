@@ -15,6 +15,7 @@ import {
   useWalkInTheParquetAnalytics,
   type WalkInTheParquetAnalyticsData,
 } from "./use-walk-in-the-parquet-analytics";
+import { useVanityMirrorAnalytics } from "./use-vanity-mirror-analytics";
 
 export type SourceStatus = "connected" | "error" | "loading" | "not-configured";
 
@@ -23,7 +24,8 @@ export type DataSource =
   | "github"
   | "packages"
   | "tennis-scorigami"
-  | "walk-in-the-parquet";
+  | "walk-in-the-parquet"
+  | "vanity-mirror";
 
 export interface SourceInfo {
   id: DataSource;
@@ -74,6 +76,7 @@ export interface OverviewAnalyticsData {
     packages: PackagesAnalyticsData | null;
     tennisScorigami: TennisScorigamiAnalyticsData | null;
     walkInTheParquet: WalkInTheParquetAnalyticsData | null;
+    vanityMirror: BlogAnalyticsData | null;
   };
 }
 
@@ -130,6 +133,7 @@ export function useOverviewAnalytics({
   const packagesQuery = usePackagesAnalytics({ dateRange, enabled });
   const tennisScorigamiQuery = useTennisScorigamiAnalytics({ dateRange, enabled });
   const walkInTheParquetQuery = useWalkInTheParquetAnalytics({ dateRange, enabled });
+  const vanityMirrorQuery = useVanityMirrorAnalytics({ dateRange, enabled });
 
   // Compute source statuses
   const sources = useMemo((): SourceInfo[] => {
@@ -169,8 +173,15 @@ export function useOverviewAnalytics({
         status: getSourceStatus(walkInTheParquetQuery),
         href: "/walk-in-the-parquet",
       },
+      {
+        id: "vanity-mirror",
+        name: "Google Analytics",
+        description: "This dashboard",
+        status: getSourceStatus(vanityMirrorQuery),
+        href: "/vanity-mirror",
+      },
     ];
-  }, [blogQuery, githubQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery]);
+  }, [blogQuery, githubQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery]);
 
   // Compute aggregated metrics
   const metrics = useMemo((): AggregatedMetrics => {
@@ -179,17 +190,20 @@ export function useOverviewAnalytics({
     const packages = packagesQuery.data;
     const tennisScorigami = tennisScorigamiQuery.data;
     const walkInTheParquet = walkInTheParquetQuery.data;
+    const vanityMirror = vanityMirrorQuery.data;
 
     // Total visitors from all visitor sources
     const totalVisitors =
       (blog?.metrics.visitors.value ?? 0) +
       (tennisScorigami?.metrics.visitors.value ?? 0) +
-      (walkInTheParquet?.documentation?.metrics.visitors.value ?? 0);
+      (walkInTheParquet?.documentation?.metrics.visitors.value ?? 0) +
+      (vanityMirror?.metrics.visitors.value ?? 0);
 
     const visitorTrend = computeWeightedTrend([
       blog?.metrics.visitors,
       tennisScorigami?.metrics.visitors,
       walkInTheParquet?.documentation?.metrics.visitors,
+      vanityMirror?.metrics.visitors,
     ]);
 
     // GitHub stars
@@ -229,6 +243,7 @@ export function useOverviewAnalytics({
     packagesQuery.data,
     tennisScorigamiQuery.data,
     walkInTheParquetQuery.data,
+    vanityMirrorQuery.data,
     sources,
   ]);
 
@@ -337,14 +352,16 @@ export function useOverviewAnalytics({
     githubQuery.isLoading ||
     packagesQuery.isLoading ||
     tennisScorigamiQuery.isLoading ||
-    walkInTheParquetQuery.isLoading;
+    walkInTheParquetQuery.isLoading ||
+    vanityMirrorQuery.isLoading;
 
   const isFetching =
     blogQuery.isFetching ||
     githubQuery.isFetching ||
     packagesQuery.isFetching ||
     tennisScorigamiQuery.isFetching ||
-    walkInTheParquetQuery.isFetching;
+    walkInTheParquetQuery.isFetching ||
+    vanityMirrorQuery.isFetching;
 
   // Refetch all function
   const refetchAll = useCallback(async () => {
@@ -354,8 +371,9 @@ export function useOverviewAnalytics({
       packagesQuery.refetch(),
       tennisScorigamiQuery.refetch(),
       walkInTheParquetQuery.refetch(),
+      vanityMirrorQuery.refetch(),
     ]);
-  }, [blogQuery, githubQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery]);
+  }, [blogQuery, githubQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery]);
 
   const data: OverviewAnalyticsData = useMemo(
     () => ({
@@ -368,6 +386,7 @@ export function useOverviewAnalytics({
         packages: packagesQuery.data ?? null,
         tennisScorigami: tennisScorigamiQuery.data ?? null,
         walkInTheParquet: walkInTheParquetQuery.data ?? null,
+        vanityMirror: vanityMirrorQuery.data ?? null,
       },
     }),
     [
@@ -379,6 +398,7 @@ export function useOverviewAnalytics({
       packagesQuery.data,
       tennisScorigamiQuery.data,
       walkInTheParquetQuery.data,
+      vanityMirrorQuery.data,
     ]
   );
 
