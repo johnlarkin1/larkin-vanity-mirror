@@ -9,10 +9,11 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import type { OverviewAnalyticsData } from "@/hooks/use-overview-analytics";
+import type { OverviewAnalyticsData, LoadingStates } from "@/hooks/use-overview-analytics";
 
 interface QuickStatsProps {
   data: OverviewAnalyticsData;
+  loadingStates?: LoadingStates;
   isLoading?: boolean;
 }
 
@@ -114,7 +115,8 @@ function StatRowSkeleton() {
   );
 }
 
-export function QuickStats({ data, isLoading = false }: QuickStatsProps) {
+export function QuickStats({ data, loadingStates, isLoading = false }: QuickStatsProps) {
+  // Show skeleton only if ALL sources are loading
   if (isLoading) {
     return (
       <Card className="flex flex-col">
@@ -134,6 +136,13 @@ export function QuickStats({ data, isLoading = false }: QuickStatsProps) {
   }
 
   const { rawData, metrics } = data;
+
+  // Determine which specific sources are still loading
+  const blogLoading = loadingStates?.blog ?? false;
+  const githubLoading = loadingStates?.github ?? false;
+  const packagesLoading = loadingStates?.packages ?? false;
+  const tennisLoading = loadingStates?.tennisScorigami ?? false;
+  const parquetLoading = loadingStates?.walkInTheParquet ?? false;
 
   // Extract 7-day sparkline data from time series
   const blogSparkline =
@@ -167,48 +176,70 @@ export function QuickStats({ data, isLoading = false }: QuickStatsProps) {
       </CardHeader>
       <CardContent className="flex-1 pt-0">
         <div className="divide-y">
-          <StatRow
-            label="Blog Visitors"
-            value={formatCompactNumber(rawData.blog?.metrics.visitors.value ?? 0)}
-            trend={rawData.blog?.metrics.visitors.trend}
-            sparklineData={blogSparkline}
-            color="#6366f1"
-          />
-          <StatRow
-            label="GitHub Stars"
-            value={formatCompactNumber(metrics.githubStars.value)}
-            trend={metrics.githubStars.trend}
-            color="#a855f7"
-          />
-          <StatRow
-            label="Package Downloads"
-            value={formatCompactNumber(metrics.packageDownloads.value)}
-            trend={Math.round(metrics.packageDownloads.trend)}
-            sparklineData={packagesSparkline}
-            color="#22c55e"
-          />
-          {dau > 0 && (
+          {blogLoading ? (
+            <StatRowSkeleton />
+          ) : (
             <StatRow
-              label="Daily Active Users"
-              value={formatCompactNumber(dau)}
-              sparklineData={tennisSparkline}
-              color="#f97316"
+              label="Blog Visitors"
+              value={formatCompactNumber(rawData.blog?.metrics.visitors.value ?? 0)}
+              trend={rawData.blog?.metrics.visitors.trend}
+              sparklineData={blogSparkline}
+              color="#6366f1"
             />
           )}
-          {wau > 0 && (
+          {githubLoading ? (
+            <StatRowSkeleton />
+          ) : (
             <StatRow
-              label="Weekly Active Users"
-              value={formatCompactNumber(wau)}
-              color="#f97316"
+              label="GitHub Stars"
+              value={formatCompactNumber(metrics.githubStars.value)}
+              trend={metrics.githubStars.trend}
+              color="#a855f7"
             />
           )}
-          {appDownloads > 0 && (
+          {packagesLoading ? (
+            <StatRowSkeleton />
+          ) : (
             <StatRow
-              label="App Downloads (Week)"
-              value={formatCompactNumber(appDownloads)}
-              trend={Math.round(appTrend)}
-              color="#ec4899"
+              label="Package Downloads"
+              value={formatCompactNumber(metrics.packageDownloads.value)}
+              trend={Math.round(metrics.packageDownloads.trend)}
+              sparklineData={packagesSparkline}
+              color="#22c55e"
             />
+          )}
+          {tennisLoading ? (
+            <StatRowSkeleton />
+          ) : (
+            <>
+              {dau > 0 && (
+                <StatRow
+                  label="Daily Active Users"
+                  value={formatCompactNumber(dau)}
+                  sparklineData={tennisSparkline}
+                  color="#f97316"
+                />
+              )}
+              {wau > 0 && (
+                <StatRow
+                  label="Weekly Active Users"
+                  value={formatCompactNumber(wau)}
+                  color="#f97316"
+                />
+              )}
+            </>
+          )}
+          {parquetLoading ? (
+            <StatRowSkeleton />
+          ) : (
+            appDownloads > 0 && (
+              <StatRow
+                label="App Downloads (Week)"
+                value={formatCompactNumber(appDownloads)}
+                trend={Math.round(appTrend)}
+                color="#ec4899"
+              />
+            )
           )}
         </div>
       </CardContent>

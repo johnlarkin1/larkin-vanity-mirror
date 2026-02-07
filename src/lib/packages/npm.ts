@@ -1,6 +1,9 @@
 // npm API client for fetching package download statistics
 
+import { fetchWithTimeout } from "../fetch-with-timeout";
 import type { PackageDownloads } from "./types";
+
+const API_TIMEOUT = 15000; // 15 seconds
 
 // In-memory cache with TTL
 interface CacheEntry<T> {
@@ -76,8 +79,12 @@ export async function fetchNpmPackage(
 
   // Fetch daily downloads and registry info in parallel
   const [downloadResponse, registryResponse] = await Promise.all([
-    fetch(`https://api.npmjs.org/downloads/range/${start}:${end}/${encodedName}`),
-    fetch(`https://registry.npmjs.org/${encodedName}`),
+    fetchWithTimeout(
+      `https://api.npmjs.org/downloads/range/${start}:${end}/${encodedName}`,
+      {},
+      API_TIMEOUT
+    ),
+    fetchWithTimeout(`https://registry.npmjs.org/${encodedName}`, {}, API_TIMEOUT),
   ]);
 
   if (!downloadResponse.ok) {

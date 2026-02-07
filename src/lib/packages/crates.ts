@@ -2,7 +2,10 @@
 // Rate limit: 1 request per second required
 // Note: crates.io does not provide daily download breakdown
 
+import { fetchWithTimeout } from "../fetch-with-timeout";
 import type { PackageDownloads } from "./types";
+
+const API_TIMEOUT = 15000; // 15 seconds
 
 // In-memory cache with TTL
 interface CacheEntry<T> {
@@ -11,7 +14,7 @@ interface CacheEntry<T> {
 }
 
 const cache = new Map<string, CacheEntry<unknown>>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes - crates data changes slowly
 
 function getCached<T>(key: string): T | null {
   const entry = cache.get(key);
@@ -57,7 +60,9 @@ function sleep(ms: number): Promise<void> {
  */
 export async function fetchCratesPackage(
   packageName: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _startDate: Date,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _endDate: Date
 ): Promise<PackageDownloads> {
   // Cache key doesn't include dates since crates.io doesn't support date filtering
@@ -65,11 +70,15 @@ export async function fetchCratesPackage(
   const cached = getCached<PackageDownloads>(cacheKey);
   if (cached) return cached;
 
-  const response = await fetch(`https://crates.io/api/v1/crates/${packageName}`, {
-    headers: {
-      "User-Agent": "larkin-vanity-mirror (https://github.com/johnlarkin1)",
+  const response = await fetchWithTimeout(
+    `https://crates.io/api/v1/crates/${packageName}`,
+    {
+      headers: {
+        "User-Agent": "larkin-vanity-mirror (https://github.com/johnlarkin1)",
+      },
     },
-  });
+    API_TIMEOUT
+  );
 
   if (!response.ok) {
     if (response.status === 404) {

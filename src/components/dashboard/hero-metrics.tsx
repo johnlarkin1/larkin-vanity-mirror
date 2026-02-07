@@ -2,10 +2,11 @@
 
 import { Users, Star, Download, Activity } from "lucide-react";
 import { MetricCard } from "@/components/data-display/metric-card";
-import type { AggregatedMetrics } from "@/hooks/use-overview-analytics";
+import type { AggregatedMetrics, LoadingStates } from "@/hooks/use-overview-analytics";
 
 interface HeroMetricsProps {
   metrics: AggregatedMetrics;
+  loadingStates?: LoadingStates;
   isLoading?: boolean;
 }
 
@@ -19,49 +20,63 @@ function formatNumber(num: number): string {
   return num.toLocaleString();
 }
 
-export function HeroMetrics({ metrics, isLoading = false }: HeroMetricsProps) {
+export function HeroMetrics({ metrics, loadingStates, isLoading = false }: HeroMetricsProps) {
   const { totalVisitors, githubStars, packageDownloads, activeSources } = metrics;
+
+  // For visitors, we need blog, tennisScorigami, walkInTheParquet, and vanityMirror to be loaded
+  const visitorsLoading = loadingStates
+    ? loadingStates.blog && loadingStates.tennisScorigami && loadingStates.walkInTheParquet && loadingStates.vanityMirror
+    : isLoading;
+
+  // GitHub stars only depends on GitHub
+  const githubLoading = loadingStates ? loadingStates.github : isLoading;
+
+  // Package downloads only depends on packages
+  const packagesLoading = loadingStates ? loadingStates.packages : isLoading;
+
+  // Data sources status updates progressively as each source loads
+  const sourcesLoading = isLoading;
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       <MetricCard
         title="Total Visitors"
-        value={isLoading ? "--" : formatNumber(totalVisitors.value)}
+        value={visitorsLoading ? "--" : formatNumber(totalVisitors.value)}
         icon={Users}
-        trend={isLoading ? undefined : Math.round(totalVisitors.trend)}
+        trend={visitorsLoading ? undefined : Math.round(totalVisitors.trend)}
         trendLabel="Across all projects"
-        isLoading={isLoading}
+        isLoading={visitorsLoading}
       />
       <MetricCard
         title="GitHub Stars"
-        value={isLoading ? "--" : formatNumber(githubStars.value)}
+        value={githubLoading ? "--" : formatNumber(githubStars.value)}
         icon={Star}
-        trend={isLoading ? undefined : githubStars.trend}
+        trend={githubLoading ? undefined : githubStars.trend}
         trendLabel={
-          isLoading
+          githubLoading
             ? "All repositories"
             : `+${githubStars.newThisWeek} this week`
         }
-        isLoading={isLoading}
+        isLoading={githubLoading}
       />
       <MetricCard
         title="Package Downloads"
-        value={isLoading ? "--" : formatNumber(packageDownloads.value)}
+        value={packagesLoading ? "--" : formatNumber(packageDownloads.value)}
         icon={Download}
-        trend={isLoading ? undefined : Math.round(packageDownloads.trend)}
+        trend={packagesLoading ? undefined : Math.round(packageDownloads.trend)}
         trendLabel="Total downloads"
-        isLoading={isLoading}
+        isLoading={packagesLoading}
       />
       <MetricCard
         title="Data Sources"
         value={
-          isLoading
+          sourcesLoading
             ? "--"
             : `${activeSources.connected}/${activeSources.total}`
         }
         icon={Activity}
         trendLabel="Connected"
-        isLoading={isLoading}
+        isLoading={sourcesLoading}
       />
     </div>
   );

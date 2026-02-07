@@ -1,4 +1,7 @@
 import * as jose from "jose";
+import { fetchWithTimeout } from "./fetch-with-timeout";
+
+const API_TIMEOUT = 15000; // 15 seconds
 
 // App Store Connect API configuration
 interface AppStoreConnectConfig {
@@ -264,7 +267,9 @@ export async function fetchSalesReports(
   // Sales reports API endpoint
   const baseUrl = "https://api.appstoreconnect.apple.com/v1/salesReports";
 
-  const { gunzipSync } = await import("zlib");
+  const { gunzip } = await import("zlib");
+  const { promisify } = await import("util");
+  const gunzipAsync = promisify(gunzip);
 
   // Helper to format date as YYYY-MM-DD without timezone issues
   const formatDateStr = (d: Date): string => {
@@ -298,7 +303,7 @@ export async function fetchSalesReports(
       return result;
     };
 
-    let currentSunday = getWeekEndingSunday(start);
+    const currentSunday = getWeekEndingSunday(start);
     const endSunday = getWeekEndingSunday(end);
 
     while (currentSunday <= endSunday) {
@@ -325,16 +330,20 @@ export async function fetchSalesReports(
     });
 
     try {
-      const response = await fetch(`${baseUrl}?${params}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/a-gzip",
+      const response = await fetchWithTimeout(
+        `${baseUrl}?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/a-gzip",
+          },
         },
-      });
+        API_TIMEOUT
+      );
 
       if (response.ok) {
         const buffer = await response.arrayBuffer();
-        const decompressed = gunzipSync(Buffer.from(buffer));
+        const decompressed = await gunzipAsync(Buffer.from(buffer));
         const tsv = decompressed.toString("utf-8");
         return parseSalesReportTSV(tsv);
       } else if (response.status !== 404) {
@@ -422,12 +431,16 @@ export async function fetchCustomerReviews(): Promise<AppStoreReviewData> {
     "limit": "50",
   });
 
-  const response = await fetch(`${baseUrl}?${params}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
+  const response = await fetchWithTimeout(
+    `${baseUrl}?${params}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
     },
-  });
+    API_TIMEOUT
+  );
 
   if (!response.ok) {
     const error = await response.text();

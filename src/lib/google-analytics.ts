@@ -122,27 +122,27 @@ async function fetchAggregateMetrics(
   avgSessionDuration: MetricWithTrend;
   avgUsersPerDay: MetricWithTrend;
 }> {
-  // Fetch current period metrics
-  const [currentResponse] = await client.runReport({
-    property: `properties/${propertyId}`,
-    dateRanges: [{ startDate, endDate }],
-    metrics: [
-      { name: "sessions" },
-      { name: "totalUsers" },
-      { name: "averageSessionDuration" },
-    ],
-  });
-
-  // Fetch previous period metrics for comparison
-  const [previousResponse] = await client.runReport({
-    property: `properties/${propertyId}`,
-    dateRanges: [{ startDate: prevStartDate, endDate: prevEndDate }],
-    metrics: [
-      { name: "sessions" },
-      { name: "totalUsers" },
-      { name: "averageSessionDuration" },
-    ],
-  });
+  // Fetch current and previous period metrics in parallel
+  const [[currentResponse], [previousResponse]] = await Promise.all([
+    client.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate, endDate }],
+      metrics: [
+        { name: "sessions" },
+        { name: "totalUsers" },
+        { name: "averageSessionDuration" },
+      ],
+    }),
+    client.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: prevStartDate, endDate: prevEndDate }],
+      metrics: [
+        { name: "sessions" },
+        { name: "totalUsers" },
+        { name: "averageSessionDuration" },
+      ],
+    }),
+  ]);
 
   const currentRow = currentResponse.rows?.[0];
   const previousRow = previousResponse.rows?.[0];

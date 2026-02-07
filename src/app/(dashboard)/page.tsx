@@ -13,7 +13,7 @@ import {
 
 export default function DashboardPage() {
   const { dateRange } = useDateRange();
-  const { data, isLoading, isFetching, refetchAll } = useOverviewAnalytics({
+  const { data, isLoading, isFetching, loadingStates, refetchAll } = useOverviewAnalytics({
     dateRange,
   });
 
@@ -41,11 +41,11 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      <HeroMetrics metrics={data.metrics} isLoading={isLoading} />
+      <HeroMetrics metrics={data.metrics} loadingStates={loadingStates} isLoading={isLoading} />
 
       <div className="grid gap-6 md:grid-cols-2">
-        <ActivityFeed items={data.activityFeed} isLoading={isLoading} />
-        <QuickStats data={data} isLoading={isLoading} />
+        <ActivityFeed items={data.activityFeed} loadingStates={loadingStates} isLoading={isLoading} />
+        <QuickStats data={data} loadingStates={loadingStates} isLoading={isLoading} />
       </div>
 
       <ConnectionStatus sources={data.sources} isLoading={isLoading} />

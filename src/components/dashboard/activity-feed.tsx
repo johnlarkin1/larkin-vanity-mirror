@@ -7,10 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import type { ActivityItem, DataSource } from "@/hooks/use-overview-analytics";
+import type { ActivityItem, DataSource, LoadingStates } from "@/hooks/use-overview-analytics";
 
 interface ActivityFeedProps {
   items: ActivityItem[];
+  loadingStates?: LoadingStates;
   isLoading?: boolean;
 }
 
@@ -164,8 +165,13 @@ function CompactItemSkeleton() {
   );
 }
 
-export function ActivityFeed({ items, isLoading = false }: ActivityFeedProps) {
+export function ActivityFeed({ items, loadingStates, isLoading = false }: ActivityFeedProps) {
   const [activeFilter, setActiveFilter] = useState<FilterOption>("all");
+
+  // Check if any source is still loading (for progressive loading indicator)
+  const anySourceLoading = loadingStates
+    ? Object.values(loadingStates).some(Boolean)
+    : isLoading;
 
   // Count items per source for filter badges
   const sourceCounts = useMemo(() => {
@@ -189,6 +195,7 @@ export function ActivityFeed({ items, isLoading = false }: ActivityFeedProps) {
     );
   }, [sourceCounts]);
 
+  // Only show full skeleton if ALL sources are loading
   if (isLoading) {
     return (
       <Card className="flex flex-col">
@@ -213,11 +220,17 @@ export function ActivityFeed({ items, isLoading = false }: ActivityFeedProps) {
   }
 
   const hasItems = items.length > 0;
+  const showLoadingIndicator = anySourceLoading && hasItems;
 
   return (
     <Card className="flex flex-col">
       <CardHeader className="pb-3">
-        <CardTitle>Recent Activity</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle>Recent Activity</CardTitle>
+          {showLoadingIndicator && (
+            <span className="h-2 w-2 animate-pulse rounded-full bg-muted-foreground/50" />
+          )}
+        </div>
         <CardDescription>Latest events across your projects</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pt-0">

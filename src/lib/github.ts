@@ -1,5 +1,9 @@
 // GitHub API client for fetching repository analytics
 
+import { fetchWithTimeout } from "./fetch-with-timeout";
+
+const API_TIMEOUT = 15000; // 15 seconds
+
 interface GitHubConfig {
   username: string;
   token?: string;
@@ -115,7 +119,7 @@ async function fetchWithAuth(url: string, token?: string): Promise<Response> {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, { headers });
+  const response = await fetchWithTimeout(url, { headers }, API_TIMEOUT);
 
   // Check rate limit
   const remaining = response.headers.get("X-RateLimit-Remaining");
