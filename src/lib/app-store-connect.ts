@@ -314,8 +314,6 @@ export async function fetchSalesReports(
     }
   }
 
-  console.log(`[Sales Report] Fetching ${datesToFetch.length} ${frequency.toLowerCase()} reports`);
-
   // Fetch all dates in parallel
   const fetchReport = async (dateStr: string): Promise<SalesReport[]> => {
     const params = new URLSearchParams({
@@ -340,7 +338,7 @@ export async function fetchSalesReports(
         const tsv = decompressed.toString("utf-8");
         return parseSalesReportTSV(tsv);
       } else if (response.status !== 404) {
-        console.log(`[Sales Report] ${dateStr}: ${response.status}`);
+        // Non-404 errors are silently ignored
       }
       return [];
     } catch {
@@ -350,7 +348,6 @@ export async function fetchSalesReports(
 
   const results = await Promise.all(datesToFetch.map(fetchReport));
   const allReports = results.flat();
-  console.log(`[Sales Report] Total records: ${allReports.length}`);
 
   // Aggregate the data
   let totalUnits = 0;

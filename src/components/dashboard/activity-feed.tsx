@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { FileText, Star, Package, Zap, MessageSquare, ExternalLink } from "lucide-react";
+import { FileText, Star, Package, Zap, MessageSquare, ExternalLink, Sparkles } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,6 +50,12 @@ const sourceConfig: Record<
     bgColor: "bg-pink-500/10 hover:bg-pink-500/20 data-[active=true]:bg-pink-500/25",
     icon: MessageSquare,
   },
+  "vanity-mirror": {
+    label: "Dashboard",
+    color: "text-violet-600 dark:text-violet-400",
+    bgColor: "bg-violet-500/10 hover:bg-violet-500/20 data-[active=true]:bg-violet-500/25",
+    icon: Sparkles,
+  },
 };
 
 const filterOptions: { value: FilterOption; label: string }[] = [
@@ -59,6 +65,7 @@ const filterOptions: { value: FilterOption; label: string }[] = [
   { value: "packages", label: "Packages" },
   { value: "tennis-scorigami", label: "Tennis" },
   { value: "walk-in-the-parquet", label: "Parquet" },
+  { value: "vanity-mirror", label: "Dashboard" },
 ];
 
 function FilterChip({

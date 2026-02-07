@@ -6,6 +6,7 @@ import {
   Smartphone,
   Package,
   Boxes,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -73,5 +74,13 @@ export const DEFAULT_NAVIGATION: NavigationItem[] = [
     icon: Boxes,
     iconColor: "text-orange-500",
     description: "npm, PyPI, Cargo",
+  },
+  {
+    id: "vanity-mirror",
+    name: "Vanity Mirror Dashboard",
+    href: "/vanity-mirror",
+    icon: Sparkles,
+    iconColor: "text-purple-500",
+    description: "Analytics for this very dashboard",
   },
 ];

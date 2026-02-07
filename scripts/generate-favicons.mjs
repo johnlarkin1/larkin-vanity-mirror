@@ -2,7 +2,7 @@
 
 import favicons from "favicons";
 import sharp from "sharp";
-import { mkdir, writeFile } from "fs/promises";
+import { copyFile, mkdir, writeFile } from "fs/promises";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -113,32 +113,23 @@ async function generateFavicons() {
       console.log("Created:", file.name);
     }
 
-    // Also copy key files to public directory for Next.js
-    const publicFiles = [
-      "favicon.ico",
-      "favicon-16x16.png",
-      "favicon-32x32.png",
-      "apple-touch-icon.png",
-      "android-chrome-192x192.png",
-      "android-chrome-512x512.png",
-      "manifest.webmanifest",
-    ];
-
+    // Copy all generated files to public directory for Next.js
     for (const image of response.images) {
-      if (publicFiles.includes(image.name)) {
-        const publicPath = join(PUBLIC_DIR, image.name);
-        await writeFile(publicPath, image.contents);
-        console.log("Copied to public:", image.name);
-      }
+      const publicPath = join(PUBLIC_DIR, image.name);
+      await writeFile(publicPath, image.contents);
+      console.log("Copied to public:", image.name);
     }
 
     for (const file of response.files) {
-      if (publicFiles.includes(file.name)) {
-        const publicPath = join(PUBLIC_DIR, file.name);
-        await writeFile(publicPath, file.contents);
-        console.log("Copied to public:", file.name);
-      }
+      const publicPath = join(PUBLIC_DIR, file.name);
+      await writeFile(publicPath, file.contents);
+      console.log("Copied to public:", file.name);
     }
+
+    // Copy favicon.ico to src/app/ for Next.js App Router
+    const appFaviconPath = join(__dirname, "../src/app/favicon.ico");
+    await copyFile(join(PUBLIC_DIR, "favicon.ico"), appFaviconPath);
+    console.log("Copied to src/app:", "favicon.ico");
 
     // Print HTML tags for reference
     console.log("\n--- HTML Tags (for reference) ---");
