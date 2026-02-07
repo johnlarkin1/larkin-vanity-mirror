@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, TrendingUp, Users, Star, Clock, DollarSign, RefreshCw, Eye, MessageSquare } from "lucide-react";
+import { Download, TrendingUp, Users, Star, Clock, DollarSign, RefreshCw, Eye, MessageSquare, Globe } from "lucide-react";
 import { MetricCard } from "@/components/data-display/metric-card";
 import { TimeSeriesChart } from "@/components/charts/time-series-chart";
 import { DateRangePicker } from "@/components/date-range-picker";
@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { ExternalLinkButton } from "@/components/ui/external-link-button";
 
 function formatDuration(seconds: number): string {
   if (seconds < 60) {
@@ -227,6 +228,12 @@ export default function WalkInTheParquetPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ExternalLinkButton
+            href="https://www.walkintheparquet.com"
+            icon={<Globe className="h-4 w-4" />}
+          >
+            Visit Site
+          </ExternalLinkButton>
           <DateRangePicker value={dateRange} onChange={setDateRange} />
           <Button
             variant="outline"

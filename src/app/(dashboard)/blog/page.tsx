@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Users, Eye, Clock, RefreshCw, TrendingUp, Timer, ArrowUpRight, LayoutList, LayoutGrid } from "lucide-react";
+import { FileText, Users, Eye, Clock, RefreshCw, TrendingUp, Timer, ArrowUpRight, LayoutList, LayoutGrid, Globe } from "lucide-react";
 import { MetricCard } from "@/components/data-display/metric-card";
 import { TimeSeriesChart } from "@/components/charts/time-series-chart";
 import { DateRangePicker } from "@/components/date-range-picker";
@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ExternalLinkButton } from "@/components/ui/external-link-button";
 
 function formatDuration(seconds: number): string {
   if (seconds < 60) {
@@ -310,6 +311,12 @@ export default function BlogPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ExternalLinkButton
+            href="https://johnlarkin1.github.io"
+            icon={<Globe className="h-4 w-4 mr-1" />}
+          >
+            Visit Blog
+          </ExternalLinkButton>
           <DateRangePicker value={dateRange} onChange={setDateRange} />
           <Button
             variant="outline"

@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Eye, MousePointerClick, Timer, RefreshCw } from "lucide-react";
+import { Users, Eye, MousePointerClick, Timer, RefreshCw, Globe } from "lucide-react";
 import { MetricCard } from "@/components/data-display/metric-card";
 import { StatGroup } from "@/components/data-display/stat-group";
 import { TimeSeriesChart } from "@/components/charts/time-series-chart";
@@ -21,6 +21,7 @@ import {
   useTennisScorigamiAnalytics,
   type TopEvent,
 } from "@/hooks/use-tennis-scorigami-analytics";
+import { ExternalLinkButton } from "@/components/ui/external-link-button";
 
 function formatDuration(seconds: number): string {
   if (seconds < 60) {
@@ -130,6 +131,12 @@ export default function TennisScorigamiPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ExternalLinkButton
+            href="https://tennis-scorigami.com"
+            icon={<Globe className="h-4 w-4" />}
+          >
+            Visit Site
+          </ExternalLinkButton>
           <DateRangePicker value={dateRange} onChange={setDateRange} />
           <Button
             variant="outline"
