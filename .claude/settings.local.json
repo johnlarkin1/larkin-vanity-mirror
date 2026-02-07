@@ -13,7 +13,9 @@
       "Bash(cat:*)",
       "mcp__plugin_playwright_playwright__browser_navigate",
       "Skill(generate-pr)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:larkin-vanity-mirror.vercel.app)",
+      "mcp__plugin_playwright_playwright__browser_evaluate"
     ]
   }
 }
