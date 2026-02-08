@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { FileText, Star, Package, Zap, MessageSquare, ExternalLink, Sparkles } from "lucide-react";
+import { FileText, Star, Package, Zap, MessageSquare, ExternalLink, Sparkles, Video } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +33,12 @@ const sourceConfig: Record<
     bgColor: "bg-purple-500/10 hover:bg-purple-500/20 data-[active=true]:bg-purple-500/25",
     icon: Star,
   },
+  youtube: {
+    label: "YouTube",
+    color: "text-red-600 dark:text-red-400",
+    bgColor: "bg-red-500/10 hover:bg-red-500/20 data-[active=true]:bg-red-500/25",
+    icon: Video,
+  },
   packages: {
     label: "Packages",
     color: "text-green-600 dark:text-green-400",
@@ -63,6 +69,7 @@ const filterOptions: { value: FilterOption; label: string }[] = [
   { value: "all", label: "All" },
   { value: "blog", label: "Blog" },
   { value: "github", label: "GitHub" },
+  { value: "youtube", label: "YouTube" },
   { value: "packages", label: "Packages" },
   { value: "tennis-scorigami", label: "Tennis" },
   { value: "walk-in-the-parquet", label: "Parquet" },

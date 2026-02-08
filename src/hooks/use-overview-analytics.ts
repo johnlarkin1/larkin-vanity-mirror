@@ -16,12 +16,14 @@ import {
   type WalkInTheParquetAnalyticsData,
 } from "./use-walk-in-the-parquet-analytics";
 import { useVanityMirrorAnalytics } from "./use-vanity-mirror-analytics";
+import { useYouTubeAnalytics, type YouTubeAnalyticsData } from "./use-youtube-analytics";
 
 export type SourceStatus = "connected" | "error" | "loading" | "not-configured";
 
 export type DataSource =
   | "blog"
   | "github"
+  | "youtube"
   | "packages"
   | "tennis-scorigami"
   | "walk-in-the-parquet"
@@ -69,6 +71,7 @@ export interface ActivityItem {
 export interface LoadingStates {
   blog: boolean;
   github: boolean;
+  youtube: boolean;
   packages: boolean;
   tennisScorigami: boolean;
   walkInTheParquet: boolean;
@@ -82,6 +85,7 @@ export interface OverviewAnalyticsData {
   rawData: {
     blog: BlogAnalyticsData | null;
     github: GitHubAnalyticsData | null;
+    youtube: YouTubeAnalyticsData | null;
     packages: PackagesAnalyticsData | null;
     tennisScorigami: TennisScorigamiAnalyticsData | null;
     walkInTheParquet: WalkInTheParquetAnalyticsData | null;
@@ -139,6 +143,7 @@ export function useOverviewAnalytics({
   // Fetch all data sources
   const blogQuery = useBlogAnalytics({ dateRange, enabled });
   const githubQuery = useGitHubAnalytics({ enabled });
+  const youtubeQuery = useYouTubeAnalytics({ enabled });
   const packagesQuery = usePackagesAnalytics({ dateRange, enabled });
   const tennisScorigamiQuery = useTennisScorigamiAnalytics({ dateRange, enabled });
   const walkInTheParquetQuery = useWalkInTheParquetAnalytics({ dateRange, enabled });
@@ -160,6 +165,13 @@ export function useOverviewAnalytics({
         description: "Star tracking",
         status: getSourceStatus(githubQuery),
         href: "/github",
+      },
+      {
+        id: "youtube",
+        name: "YouTube Data API",
+        description: "Video analytics",
+        status: getSourceStatus(youtubeQuery),
+        href: "/youtube",
       },
       {
         id: "packages",
@@ -190,7 +202,7 @@ export function useOverviewAnalytics({
         href: "/vanity-mirror",
       },
     ];
-  }, [blogQuery, githubQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery]);
+  }, [blogQuery, githubQuery, youtubeQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery]);
 
   // Compute aggregated metrics
   const metrics = useMemo((): AggregatedMetrics => {
@@ -262,6 +274,7 @@ export function useOverviewAnalytics({
 
     const blog = blogQuery.data;
     const github = githubQuery.data;
+    const youtube = youtubeQuery.data;
     const packages = packagesQuery.data;
     const tennisScorigami = tennisScorigamiQuery.data;
     const walkInTheParquet = walkInTheParquetQuery.data;
@@ -298,6 +311,22 @@ export function useOverviewAnalytics({
             href: repo.url,
           });
         });
+    }
+
+    // Top YouTube videos
+    if (youtube?.videos) {
+      youtube.videos.slice(0, 3).forEach((video, i) => {
+        items.push({
+          id: `youtube-video-${i}`,
+          source: "youtube",
+          type: "video",
+          title: video.title,
+          description: `${video.viewCount.toLocaleString()} views`,
+          timestamp: new Date(video.publishedAt),
+          value: video.viewCount,
+          href: video.url,
+        });
+      });
     }
 
     // Top packages
@@ -350,6 +379,7 @@ export function useOverviewAnalytics({
   }, [
     blogQuery.data,
     githubQuery.data,
+    youtubeQuery.data,
     packagesQuery.data,
     tennisScorigamiQuery.data,
     walkInTheParquetQuery.data,
@@ -359,6 +389,7 @@ export function useOverviewAnalytics({
   const loadingStates = useMemo((): LoadingStates => ({
     blog: blogQuery.isLoading,
     github: githubQuery.isLoading,
+    youtube: youtubeQuery.isLoading,
     packages: packagesQuery.isLoading,
     tennisScorigami: tennisScorigamiQuery.isLoading,
     walkInTheParquet: walkInTheParquetQuery.isLoading,
@@ -366,6 +397,7 @@ export function useOverviewAnalytics({
   }), [
     blogQuery.isLoading,
     githubQuery.isLoading,
+    youtubeQuery.isLoading,
     packagesQuery.isLoading,
     tennisScorigamiQuery.isLoading,
     walkInTheParquetQuery.isLoading,
@@ -376,6 +408,7 @@ export function useOverviewAnalytics({
   const isLoading =
     blogQuery.isLoading &&
     githubQuery.isLoading &&
+    youtubeQuery.isLoading &&
     packagesQuery.isLoading &&
     tennisScorigamiQuery.isLoading &&
     walkInTheParquetQuery.isLoading &&
@@ -385,6 +418,7 @@ export function useOverviewAnalytics({
   const isFetching =
     blogQuery.isFetching ||
     githubQuery.isFetching ||
+    youtubeQuery.isFetching ||
     packagesQuery.isFetching ||
     tennisScorigamiQuery.isFetching ||
     walkInTheParquetQuery.isFetching ||
@@ -395,12 +429,13 @@ export function useOverviewAnalytics({
     await Promise.all([
       blogQuery.refetch(),
       githubQuery.refetch(),
+      youtubeQuery.refetch(),
       packagesQuery.refetch(),
       tennisScorigamiQuery.refetch(),
       walkInTheParquetQuery.refetch(),
       vanityMirrorQuery.refetch(),
     ]);
-  }, [blogQuery, githubQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery]);
+  }, [blogQuery, githubQuery, youtubeQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery]);
 
   const data: OverviewAnalyticsData = useMemo(
     () => ({
@@ -410,6 +445,7 @@ export function useOverviewAnalytics({
       rawData: {
         blog: blogQuery.data ?? null,
         github: githubQuery.data ?? null,
+        youtube: youtubeQuery.data ?? null,
         packages: packagesQuery.data ?? null,
         tennisScorigami: tennisScorigamiQuery.data ?? null,
         walkInTheParquet: walkInTheParquetQuery.data ?? null,
@@ -422,6 +458,7 @@ export function useOverviewAnalytics({
       activityFeed,
       blogQuery.data,
       githubQuery.data,
+      youtubeQuery.data,
       packagesQuery.data,
       tennisScorigamiQuery.data,
       walkInTheParquetQuery.data,

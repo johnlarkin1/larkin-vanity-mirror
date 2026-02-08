@@ -140,6 +140,7 @@ export function QuickStats({ data, loadingStates, isLoading = false }: QuickStat
   // Determine which specific sources are still loading
   const blogLoading = loadingStates?.blog ?? false;
   const githubLoading = loadingStates?.github ?? false;
+  const youtubeLoading = loadingStates?.youtube ?? false;
   const packagesLoading = loadingStates?.packages ?? false;
   const tennisLoading = loadingStates?.tennisScorigami ?? false;
   const parquetLoading = loadingStates?.walkInTheParquet ?? false;
@@ -207,6 +208,17 @@ export function QuickStats({ data, loadingStates, isLoading = false }: QuickStat
               sparklineData={packagesSparkline}
               color="#22c55e"
             />
+          )}
+          {youtubeLoading ? (
+            <StatRowSkeleton />
+          ) : (
+            rawData.youtube && (
+              <StatRow
+                label="YouTube Views"
+                value={formatCompactNumber(rawData.youtube.metrics.totalViews)}
+                color="#ef4444"
+              />
+            )
           )}
           {tennisLoading ? (
             <StatRowSkeleton />

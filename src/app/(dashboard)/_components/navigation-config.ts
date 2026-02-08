@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   FileText,
   Github,
+  Youtube,
   Gamepad2,
   Smartphone,
   Package,
@@ -42,6 +43,14 @@ export const DEFAULT_NAVIGATION: NavigationItem[] = [
     icon: Github,
     iconColor: "text-violet-500",
     description: "Star tracking",
+  },
+  {
+    id: "youtube",
+    name: "YouTube",
+    href: "/youtube",
+    icon: Youtube,
+    iconColor: "text-red-500",
+    description: "Video analytics",
   },
   {
     id: "tennis-scorigami",
