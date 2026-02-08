@@ -10,6 +10,7 @@ import type { SourceInfo, SourceStatus } from "@/hooks/use-overview-analytics";
 const EXTERNAL_URLS: Record<string, string> = {
   blog: "https://johnlarkin1.github.io",
   github: "https://github.com/johnlarkin1",
+  youtube: "https://www.youtube.com/@johnlarkin1",
   "tennis-scorigami": "https://tennis-scorigami.com",
   scrollz: "https://scrollz.co",
   "walk-in-the-parquet": "https://www.walkintheparquet.com",
