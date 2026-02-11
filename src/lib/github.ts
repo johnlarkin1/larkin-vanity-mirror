@@ -235,23 +235,29 @@ export async function fetchUserRepositories(
     page++;
   }
 
+  // Filter out excluded repos
+  const excludeRepos = process.env.GITHUB_EXCLUDE_REPOS?.split(",").map(s => s.trim()).filter(Boolean) ?? [];
+  const filtered = excludeRepos.length > 0
+    ? repos.filter(repo => !excludeRepos.includes(repo.name))
+    : repos;
+
   // Sort by stars descending, then by most recently updated descending
-  repos.sort((a, b) => {
+  filtered.sort((a, b) => {
     if (b.stars !== a.stars) return b.stars - a.stars;
     return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
   });
 
   // Fetch language breakdowns in parallel for all repos
-  const languagePromises = repos.map((repo) => fetchRepoLanguages(repo.fullName, token));
+  const languagePromises = filtered.map((repo) => fetchRepoLanguages(repo.fullName, token));
   const languageResults = await Promise.all(languagePromises);
 
   // Assign language breakdowns to repos
-  repos.forEach((repo, index) => {
+  filtered.forEach((repo, index) => {
     repo.languages = languageResults[index];
   });
 
-  setCache(cacheKey, repos);
-  return repos;
+  setCache(cacheKey, filtered);
+  return filtered;
 }
 
 // Simple star history approximation based on repo creation dates
