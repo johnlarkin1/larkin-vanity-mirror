@@ -1,8 +1,14 @@
-// PostHog API client for fetching Tennis Scorigami analytics
+// PostHog API client for fetching analytics across multiple projects
 
 import { fetchWithTimeout } from "./fetch-with-timeout";
 
 const API_TIMEOUT = 15000; // 15 seconds
+
+export type PostHogProject =
+  | "tennis-scorigami"
+  | "odyssey"
+  | "afuera"
+  | "be-right-back";
 
 interface PostHogConfig {
   apiKey: string;
@@ -10,17 +16,31 @@ interface PostHogConfig {
   host: string;
 }
 
-function getConfig(): PostHogConfig {
-  const apiKey = process.env.POSTHOG_API_KEY;
-  const projectId = process.env.POSTHOG_PROJECT_ID;
+const PROJECT_ENV_PREFIXES: Record<PostHogProject, string> = {
+  "tennis-scorigami": "TENNIS_SCORIGAMI",
+  "odyssey": "ODYSSEY",
+  "afuera": "AFUERA",
+  "be-right-back": "BE_RIGHT_BACK",
+};
+
+function getConfigForProject(project: PostHogProject): PostHogConfig {
+  const prefix = PROJECT_ENV_PREFIXES[project];
   const host = process.env.POSTHOG_HOST ?? "https://us.posthog.com";
 
+  // Tennis Scorigami falls back to the legacy env var names
+  const apiKey =
+    process.env[`${prefix}_POSTHOG_API_KEY`] ??
+    (project === "tennis-scorigami" ? process.env.POSTHOG_API_KEY : undefined);
+  const projectId =
+    process.env[`${prefix}_POSTHOG_PROJECT_ID`] ??
+    (project === "tennis-scorigami" ? process.env.POSTHOG_PROJECT_ID : undefined);
+
   if (!apiKey) {
-    throw new Error("Missing POSTHOG_API_KEY environment variable");
+    throw new Error(`Missing ${prefix}_POSTHOG_API_KEY environment variable`);
   }
 
   if (!projectId) {
-    throw new Error("Missing POSTHOG_PROJECT_ID environment variable");
+    throw new Error(`Missing ${prefix}_POSTHOG_PROJECT_ID environment variable`);
   }
 
   return { apiKey, projectId, host };
@@ -77,7 +97,7 @@ export interface TopEvent {
   uniqueUsers: number;
 }
 
-export interface TennisScorigamiAnalyticsData {
+export interface PostHogAnalyticsData {
   metrics: {
     visitors: MetricWithTrend;
     uniqueVisitors: MetricWithTrend;
@@ -88,6 +108,9 @@ export interface TennisScorigamiAnalyticsData {
   timeSeries: PostHogTimeSeriesPoint[];
   topEvents: TopEvent[];
 }
+
+/** @deprecated Use PostHogAnalyticsData instead */
+export type TennisScorigamiAnalyticsData = PostHogAnalyticsData;
 
 // PostHog API response types
 interface PostHogTrendsResult {
@@ -410,14 +433,15 @@ async function fetchTotalEvents(
   return 0;
 }
 
-export async function fetchTennisScorigamiAnalytics(
+export async function fetchPostHogAnalytics(
+  project: PostHogProject,
   startDate: string,
   endDate: string
-): Promise<TennisScorigamiAnalyticsData> {
-  const config = getConfig();
+): Promise<PostHogAnalyticsData> {
+  const config = getConfigForProject(project);
 
-  const cacheKey = `tennis-scorigami:${startDate}:${endDate}`;
-  const cached = getCached<TennisScorigamiAnalyticsData>(cacheKey);
+  const cacheKey = `posthog:${project}:${startDate}:${endDate}`;
+  const cached = getCached<PostHogAnalyticsData>(cacheKey);
   if (cached) return cached;
 
   // Calculate previous period for comparison
@@ -460,7 +484,7 @@ export async function fetchTennisScorigamiAnalytics(
     fetchTopEvents(config, startDate, endDate),
   ]);
 
-  const data: TennisScorigamiAnalyticsData = {
+  const data: PostHogAnalyticsData = {
     metrics: {
       visitors: {
         value: currentVisitors,
@@ -490,4 +514,12 @@ export async function fetchTennisScorigamiAnalytics(
 
   setCache(cacheKey, data);
   return data;
+}
+
+/** @deprecated Use fetchPostHogAnalytics("tennis-scorigami", ...) instead */
+export async function fetchTennisScorigamiAnalytics(
+  startDate: string,
+  endDate: string
+): Promise<PostHogAnalyticsData> {
+  return fetchPostHogAnalytics("tennis-scorigami", startDate, endDate);
 }
