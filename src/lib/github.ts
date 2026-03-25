@@ -294,6 +294,102 @@ function generateStarHistory(repos: GitHubRepository[]): StarHistoryPoint[] {
   return history;
 }
 
+// GitHub Releases types
+interface GitHubApiReleaseAsset {
+  name: string;
+  download_count: number;
+  size: number;
+  created_at: string;
+}
+
+interface GitHubApiRelease {
+  id: number;
+  tag_name: string;
+  name: string | null;
+  published_at: string | null;
+  assets: GitHubApiReleaseAsset[];
+}
+
+export interface GitHubReleaseAsset {
+  name: string;
+  downloadCount: number;
+  size: number;
+  createdAt: string;
+}
+
+export interface GitHubRelease {
+  id: number;
+  tagName: string;
+  name: string;
+  publishedAt: string;
+  assets: GitHubReleaseAsset[];
+  totalDownloads: number;
+}
+
+export interface GitHubReleasesData {
+  releases: GitHubRelease[];
+  totalDownloads: number;
+  latestVersion: string | null;
+}
+
+export async function fetchRepoReleases(
+  owner: string,
+  repo: string,
+  token?: string
+): Promise<GitHubReleasesData> {
+  const cacheKey = `releases:${owner}/${repo}`;
+  const cached = getCached<GitHubReleasesData>(cacheKey);
+  if (cached) return cached;
+
+  const releases: GitHubRelease[] = [];
+  let page = 1;
+  const perPage = 100;
+
+  while (true) {
+    const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=${perPage}&page=${page}`;
+    const response = await fetchWithAuth(url, token);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error(`GitHub repository '${owner}/${repo}' not found`);
+      }
+      throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data: GitHubApiRelease[] = await response.json();
+    if (data.length === 0) break;
+
+    releases.push(
+      ...data.map((release) => {
+        const assets = release.assets.map((asset) => ({
+          name: asset.name,
+          downloadCount: asset.download_count,
+          size: asset.size,
+          createdAt: asset.created_at,
+        }));
+        return {
+          id: release.id,
+          tagName: release.tag_name,
+          name: release.name || release.tag_name,
+          publishedAt: release.published_at || "",
+          assets,
+          totalDownloads: assets.reduce((sum, a) => sum + a.downloadCount, 0),
+        };
+      })
+    );
+
+    if (data.length < perPage) break;
+    page++;
+  }
+
+  const totalDownloads = releases.reduce((sum, r) => sum + r.totalDownloads, 0);
+  const latestVersion = releases.length > 0 ? releases[0].tagName : null;
+
+  const result: GitHubReleasesData = { releases, totalDownloads, latestVersion };
+  setCache(cacheKey, result);
+  return result;
+}
+
 export async function fetchGitHubAnalytics(): Promise<GitHubAnalyticsData> {
   const { username, token } = getConfig();
 
