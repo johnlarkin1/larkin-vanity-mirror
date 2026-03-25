@@ -17,6 +17,12 @@ import {
 } from "./use-walk-in-the-parquet-analytics";
 import { useVanityMirrorAnalytics } from "./use-vanity-mirror-analytics";
 import { useYouTubeAnalytics, type YouTubeAnalyticsData } from "./use-youtube-analytics";
+import { useOdysseyAnalytics, type OdysseyAnalyticsData } from "./use-odyssey-analytics";
+import { useAfueraAnalytics, type AfueraAnalyticsData } from "./use-afuera-analytics";
+import {
+  useBeRightBackAnalytics,
+  type BeRightBackAnalyticsData,
+} from "./use-be-right-back-analytics";
 
 export type SourceStatus = "connected" | "error" | "loading" | "not-configured";
 
@@ -27,7 +33,10 @@ export type DataSource =
   | "packages"
   | "tennis-scorigami"
   | "walk-in-the-parquet"
-  | "vanity-mirror";
+  | "vanity-mirror"
+  | "odyssey"
+  | "afuera"
+  | "be-right-back";
 
 export interface SourceInfo {
   id: DataSource;
@@ -76,6 +85,9 @@ export interface LoadingStates {
   tennisScorigami: boolean;
   walkInTheParquet: boolean;
   vanityMirror: boolean;
+  odyssey: boolean;
+  afuera: boolean;
+  beRightBack: boolean;
 }
 
 export interface OverviewAnalyticsData {
@@ -90,6 +102,9 @@ export interface OverviewAnalyticsData {
     tennisScorigami: TennisScorigamiAnalyticsData | null;
     walkInTheParquet: WalkInTheParquetAnalyticsData | null;
     vanityMirror: BlogAnalyticsData | null;
+    odyssey: OdysseyAnalyticsData | null;
+    afuera: AfueraAnalyticsData | null;
+    beRightBack: BeRightBackAnalyticsData | null;
   };
 }
 
@@ -148,6 +163,9 @@ export function useOverviewAnalytics({
   const tennisScorigamiQuery = useTennisScorigamiAnalytics({ dateRange, enabled });
   const walkInTheParquetQuery = useWalkInTheParquetAnalytics({ dateRange, enabled });
   const vanityMirrorQuery = useVanityMirrorAnalytics({ dateRange, enabled });
+  const odysseyQuery = useOdysseyAnalytics({ dateRange, enabled });
+  const afueraQuery = useAfueraAnalytics({ dateRange, enabled });
+  const beRightBackQuery = useBeRightBackAnalytics({ dateRange, enabled });
 
   // Compute source statuses
   const sources = useMemo((): SourceInfo[] => {
@@ -201,8 +219,29 @@ export function useOverviewAnalytics({
         status: getSourceStatus(vanityMirrorQuery),
         href: "/vanity-mirror",
       },
+      {
+        id: "odyssey",
+        name: "PostHog",
+        description: "Odyssey (odozi.app)",
+        status: getSourceStatus(odysseyQuery),
+        href: "/odyssey",
+      },
+      {
+        id: "afuera",
+        name: "PostHog",
+        description: "Afuera (afuera.app)",
+        status: getSourceStatus(afueraQuery),
+        href: "/afuera",
+      },
+      {
+        id: "be-right-back",
+        name: "PostHog + GitHub",
+        description: "Be Right Back",
+        status: getSourceStatus(beRightBackQuery),
+        href: "/be-right-back",
+      },
     ];
-  }, [blogQuery, githubQuery, youtubeQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery]);
+  }, [blogQuery, githubQuery, youtubeQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery, odysseyQuery, afueraQuery, beRightBackQuery]);
 
   // Compute aggregated metrics
   const metrics = useMemo((): AggregatedMetrics => {
@@ -212,19 +251,28 @@ export function useOverviewAnalytics({
     const tennisScorigami = tennisScorigamiQuery.data;
     const walkInTheParquet = walkInTheParquetQuery.data;
     const vanityMirror = vanityMirrorQuery.data;
+    const odyssey = odysseyQuery.data;
+    const afuera = afueraQuery.data;
+    const beRightBack = beRightBackQuery.data;
 
     // Total visitors from all visitor sources
     const totalVisitors =
       (blog?.metrics.visitors.value ?? 0) +
       (tennisScorigami?.metrics.visitors.value ?? 0) +
       (walkInTheParquet?.documentation?.metrics.visitors.value ?? 0) +
-      (vanityMirror?.metrics.visitors.value ?? 0);
+      (vanityMirror?.metrics.visitors.value ?? 0) +
+      (odyssey?.website.metrics.visitors.value ?? 0) +
+      (afuera?.website.metrics.visitors.value ?? 0) +
+      (beRightBack?.website.metrics.visitors.value ?? 0);
 
     const visitorTrend = computeWeightedTrend([
       blog?.metrics.visitors,
       tennisScorigami?.metrics.visitors,
       walkInTheParquet?.documentation?.metrics.visitors,
       vanityMirror?.metrics.visitors,
+      odyssey?.website.metrics.visitors,
+      afuera?.website.metrics.visitors,
+      beRightBack?.website.metrics.visitors,
     ]);
 
     // GitHub stars
@@ -265,6 +313,9 @@ export function useOverviewAnalytics({
     tennisScorigamiQuery.data,
     walkInTheParquetQuery.data,
     vanityMirrorQuery.data,
+    odysseyQuery.data,
+    afueraQuery.data,
+    beRightBackQuery.data,
     sources,
   ]);
 
@@ -278,6 +329,9 @@ export function useOverviewAnalytics({
     const packages = packagesQuery.data;
     const tennisScorigami = tennisScorigamiQuery.data;
     const walkInTheParquet = walkInTheParquetQuery.data;
+    const odyssey = odysseyQuery.data;
+    const afuera = afueraQuery.data;
+    const beRightBack = beRightBackQuery.data;
 
     // Top blog posts
     if (blog?.topPages) {
@@ -372,6 +426,46 @@ export function useOverviewAnalytics({
       });
     }
 
+    // Odyssey top events
+    if (odyssey?.website.topEvents) {
+      odyssey.website.topEvents.slice(0, 2).forEach((event, i) => {
+        items.push({
+          id: `odyssey-event-${i}`,
+          source: "odyssey",
+          type: "event",
+          title: event.eventName,
+          description: `${event.count.toLocaleString()} occurrences (Odyssey)`,
+          value: event.count,
+        });
+      });
+    }
+
+    // Afuera top events
+    if (afuera?.website.topEvents) {
+      afuera.website.topEvents.slice(0, 2).forEach((event, i) => {
+        items.push({
+          id: `afuera-event-${i}`,
+          source: "afuera",
+          type: "event",
+          title: event.eventName,
+          description: `${event.count.toLocaleString()} occurrences (Afuera)`,
+          value: event.count,
+        });
+      });
+    }
+
+    // Be Right Back downloads
+    if (beRightBack?.downloads && beRightBack.downloads.totalDownloads > 0) {
+      items.push({
+        id: "brb-downloads",
+        source: "be-right-back",
+        type: "downloads",
+        title: `Be Right Back ${beRightBack.downloads.latestVersion ?? ""}`,
+        description: `${beRightBack.downloads.totalDownloads.toLocaleString()} total downloads`,
+        value: beRightBack.downloads.totalDownloads,
+      });
+    }
+
     // Sort by value (importance) and take top 10
     return items
       .sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
@@ -383,6 +477,9 @@ export function useOverviewAnalytics({
     packagesQuery.data,
     tennisScorigamiQuery.data,
     walkInTheParquetQuery.data,
+    odysseyQuery.data,
+    afueraQuery.data,
+    beRightBackQuery.data,
   ]);
 
   // Per-source loading states for progressive rendering
@@ -394,6 +491,9 @@ export function useOverviewAnalytics({
     tennisScorigami: tennisScorigamiQuery.isLoading,
     walkInTheParquet: walkInTheParquetQuery.isLoading,
     vanityMirror: vanityMirrorQuery.isLoading,
+    odyssey: odysseyQuery.isLoading,
+    afuera: afueraQuery.isLoading,
+    beRightBack: beRightBackQuery.isLoading,
   }), [
     blogQuery.isLoading,
     githubQuery.isLoading,
@@ -402,6 +502,9 @@ export function useOverviewAnalytics({
     tennisScorigamiQuery.isLoading,
     walkInTheParquetQuery.isLoading,
     vanityMirrorQuery.isLoading,
+    odysseyQuery.isLoading,
+    afueraQuery.isLoading,
+    beRightBackQuery.isLoading,
   ]);
 
   // Unified loading state - true only when ALL sources are loading
@@ -412,7 +515,10 @@ export function useOverviewAnalytics({
     packagesQuery.isLoading &&
     tennisScorigamiQuery.isLoading &&
     walkInTheParquetQuery.isLoading &&
-    vanityMirrorQuery.isLoading;
+    vanityMirrorQuery.isLoading &&
+    odysseyQuery.isLoading &&
+    afueraQuery.isLoading &&
+    beRightBackQuery.isLoading;
 
   // True if any source is still fetching
   const isFetching =
@@ -422,7 +528,10 @@ export function useOverviewAnalytics({
     packagesQuery.isFetching ||
     tennisScorigamiQuery.isFetching ||
     walkInTheParquetQuery.isFetching ||
-    vanityMirrorQuery.isFetching;
+    vanityMirrorQuery.isFetching ||
+    odysseyQuery.isFetching ||
+    afueraQuery.isFetching ||
+    beRightBackQuery.isFetching;
 
   // Refetch all function
   const refetchAll = useCallback(async () => {
@@ -434,8 +543,11 @@ export function useOverviewAnalytics({
       tennisScorigamiQuery.refetch(),
       walkInTheParquetQuery.refetch(),
       vanityMirrorQuery.refetch(),
+      odysseyQuery.refetch(),
+      afueraQuery.refetch(),
+      beRightBackQuery.refetch(),
     ]);
-  }, [blogQuery, githubQuery, youtubeQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery]);
+  }, [blogQuery, githubQuery, youtubeQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery, odysseyQuery, afueraQuery, beRightBackQuery]);
 
   const data: OverviewAnalyticsData = useMemo(
     () => ({
@@ -450,6 +562,9 @@ export function useOverviewAnalytics({
         tennisScorigami: tennisScorigamiQuery.data ?? null,
         walkInTheParquet: walkInTheParquetQuery.data ?? null,
         vanityMirror: vanityMirrorQuery.data ?? null,
+        odyssey: odysseyQuery.data ?? null,
+        afuera: afueraQuery.data ?? null,
+        beRightBack: beRightBackQuery.data ?? null,
       },
     }),
     [
@@ -463,6 +578,9 @@ export function useOverviewAnalytics({
       tennisScorigamiQuery.data,
       walkInTheParquetQuery.data,
       vanityMirrorQuery.data,
+      odysseyQuery.data,
+      afueraQuery.data,
+      beRightBackQuery.data,
     ]
   );
 

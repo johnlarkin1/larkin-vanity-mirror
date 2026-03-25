@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { FileText, Star, Package, Zap, MessageSquare, ExternalLink, Sparkles, Video } from "lucide-react";
+import { FileText, Star, Package, Zap, MessageSquare, ExternalLink, Sparkles, Video, BookOpen, MapPin, Monitor } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,6 +63,24 @@ const sourceConfig: Record<
     bgColor: "bg-violet-500/10 hover:bg-violet-500/20 data-[active=true]:bg-violet-500/25",
     icon: Sparkles,
   },
+  odyssey: {
+    label: "Odyssey",
+    color: "text-sky-600 dark:text-sky-400",
+    bgColor: "bg-sky-500/10 hover:bg-sky-500/20 data-[active=true]:bg-sky-500/25",
+    icon: BookOpen,
+  },
+  afuera: {
+    label: "Afuera",
+    color: "text-green-600 dark:text-green-400",
+    bgColor: "bg-green-500/10 hover:bg-green-500/20 data-[active=true]:bg-green-500/25",
+    icon: MapPin,
+  },
+  "be-right-back": {
+    label: "BRB",
+    color: "text-teal-600 dark:text-teal-400",
+    bgColor: "bg-teal-500/10 hover:bg-teal-500/20 data-[active=true]:bg-teal-500/25",
+    icon: Monitor,
+  },
 };
 
 const filterOptions: { value: FilterOption; label: string }[] = [
@@ -74,6 +92,9 @@ const filterOptions: { value: FilterOption; label: string }[] = [
   { value: "tennis-scorigami", label: "Tennis" },
   { value: "walk-in-the-parquet", label: "Parquet" },
   { value: "vanity-mirror", label: "Dashboard" },
+  { value: "odyssey", label: "Odyssey" },
+  { value: "afuera", label: "Afuera" },
+  { value: "be-right-back", label: "BRB" },
 ];
 
 function FilterChip({
