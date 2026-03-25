@@ -8,6 +8,9 @@ import {
   Package,
   Boxes,
   Sparkles,
+  BookOpen,
+  MapPin,
+  Monitor,
   type LucideIcon,
 } from "lucide-react";
 
@@ -59,6 +62,30 @@ export const DEFAULT_NAVIGATION: NavigationItem[] = [
     icon: Gamepad2,
     iconColor: "text-amber-500",
     description: "PostHog analytics",
+  },
+  {
+    id: "odyssey",
+    name: "Odyssey",
+    href: "/odyssey",
+    icon: BookOpen,
+    iconColor: "text-sky-500",
+    description: "Journaling app",
+  },
+  {
+    id: "afuera",
+    name: "Afuera",
+    href: "/afuera",
+    icon: MapPin,
+    iconColor: "text-green-500",
+    description: "NYC social app",
+  },
+  {
+    id: "be-right-back",
+    name: "Be Right Back",
+    href: "/be-right-back",
+    icon: Monitor,
+    iconColor: "text-teal-500",
+    description: "macOS app",
   },
   {
     id: "scrollz",
