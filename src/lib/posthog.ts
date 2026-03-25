@@ -27,16 +27,16 @@ function getConfigForProject(project: PostHogProject): PostHogConfig {
   const prefix = PROJECT_ENV_PREFIXES[project];
   const host = process.env.POSTHOG_HOST ?? "https://us.posthog.com";
 
-  // Tennis Scorigami falls back to the legacy env var names
-  const apiKey =
-    process.env[`${prefix}_POSTHOG_API_KEY`] ??
-    (project === "tennis-scorigami" ? process.env.POSTHOG_API_KEY : undefined);
+  // One shared personal API key (phx_...) for all projects
+  const apiKey = process.env.POSTHOG_API_KEY;
+
+  // Per-project ID; Tennis Scorigami falls back to legacy POSTHOG_PROJECT_ID
   const projectId =
     process.env[`${prefix}_POSTHOG_PROJECT_ID`] ??
     (project === "tennis-scorigami" ? process.env.POSTHOG_PROJECT_ID : undefined);
 
   if (!apiKey) {
-    throw new Error(`Missing ${prefix}_POSTHOG_API_KEY environment variable`);
+    throw new Error("Missing POSTHOG_API_KEY environment variable");
   }
 
   if (!projectId) {
