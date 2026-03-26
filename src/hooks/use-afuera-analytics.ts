@@ -9,8 +9,8 @@ export type { PostHogAnalyticsData };
 
 export interface AfueraAnalyticsData {
   website: PostHogAnalyticsData;
-  appStore: null;  // Stub: not yet on App Store
-  signups: null;   // Stub: signup tracking not yet implemented
+  appStore: null;  // TODO: integrate App Store Connect data once Afuera ships
+  signups: null;   // TODO: add signup tracking (PostHog custom events or Clerk API)
 }
 
 interface AfueraAnalyticsResponse {

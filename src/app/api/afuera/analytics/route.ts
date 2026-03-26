@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         website,
-        appStore: null, // Stub: not yet on App Store
-        signups: null,  // Stub: signup tracking not yet implemented
+        appStore: null, // TODO: integrate App Store Connect once Afuera ships (reuse lib/app-store-connect.ts, needs per-app parameterization)
+        signups: null,  // TODO: track signups — either PostHog custom events (user_signed_up) or query Clerk/backend directly
       },
     });
   } catch (error) {

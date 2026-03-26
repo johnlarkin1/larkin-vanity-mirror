@@ -9,7 +9,7 @@ export type { PostHogAnalyticsData };
 
 export interface OdysseyAnalyticsData {
   website: PostHogAnalyticsData;
-  appStore: null; // Stub: not yet on App Store
+  appStore: null; // TODO: integrate App Store Connect data (downloads, proceeds, reviews) once Odyssey ships
 }
 
 interface OdysseyAnalyticsResponse {

@@ -214,7 +214,9 @@ export default function AfueraPage() {
         </CardContent>
       </Card>
 
-      {/* App Store Stub */}
+      {/* TODO: Replace stub with real App Store Connect data once Afuera ships.
+          Requires: parameterize lib/app-store-connect.ts for multiple apps,
+          add AFUERA_APP_STORE_CONNECT_APP_ID env var. */}
       <Card className="border-dashed">
         <CardHeader>
           <CardTitle>App Downloads</CardTitle>
@@ -228,7 +230,10 @@ export default function AfueraPage() {
         </CardContent>
       </Card>
 
-      {/* User Signups Stub */}
+      {/* TODO: Replace stub with real signup data.
+          Options: (1) PostHog custom event (user_signed_up) fired from Afuera backend/app,
+          (2) Query Clerk API directly for user counts,
+          (3) Query Afuera's Neon Postgres for signup metrics. */}
       <Card className="border-dashed">
         <CardHeader>
           <CardTitle>User Signups</CardTitle>
