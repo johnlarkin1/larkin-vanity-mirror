@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         website,
-        appStore: null, // Stub: not yet on App Store
+        appStore: null, // TODO: integrate App Store Connect once Odyssey ships (reuse lib/app-store-connect.ts, needs per-app parameterization)
       },
     });
   } catch (error) {

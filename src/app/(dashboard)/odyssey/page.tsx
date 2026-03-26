@@ -214,7 +214,9 @@ export default function OdysseyPage() {
         </CardContent>
       </Card>
 
-      {/* App Store Stub */}
+      {/* TODO: Replace stub with real App Store Connect data once Odyssey ships.
+          Requires: parameterize lib/app-store-connect.ts for multiple apps (currently hardcoded to Walk in the Parquet),
+          add ODYSSEY_APP_STORE_CONNECT_APP_ID env var, fetch downloads/proceeds/reviews here. */}
       <Card className="border-dashed">
         <CardHeader>
           <CardTitle>App Downloads</CardTitle>

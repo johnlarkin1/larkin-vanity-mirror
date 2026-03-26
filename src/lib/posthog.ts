@@ -109,7 +109,7 @@ export interface PostHogAnalyticsData {
   topEvents: TopEvent[];
 }
 
-/** @deprecated Use PostHogAnalyticsData instead */
+/** @deprecated Use PostHogAnalyticsData instead. TODO: migrate tennis-scorigami hook/route to use PostHogAnalyticsData directly, then remove this alias */
 export type TennisScorigamiAnalyticsData = PostHogAnalyticsData;
 
 // PostHog API response types
@@ -516,7 +516,7 @@ export async function fetchPostHogAnalytics(
   return data;
 }
 
-/** @deprecated Use fetchPostHogAnalytics("tennis-scorigami", ...) instead */
+/** @deprecated Use fetchPostHogAnalytics("tennis-scorigami", ...) instead. TODO: update tennis-scorigami route to call fetchPostHogAnalytics directly, then remove this wrapper */
 export async function fetchTennisScorigamiAnalytics(
   startDate: string,
   endDate: string
