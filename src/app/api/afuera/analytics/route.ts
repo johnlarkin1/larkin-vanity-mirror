@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPostHogAnalytics } from "@/lib/posthog";
+import { fetchRepoReleases } from "@/lib/github";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
@@ -41,12 +42,24 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const website = await fetchPostHogAnalytics("afuera", startDate, endDate);
+    const repoSlug = process.env.AFUERA_GITHUB_REPO;
+    const token = process.env.GITHUB_TOKEN;
+
+    const [website, releases] = await Promise.all([
+      fetchPostHogAnalytics("afuera", startDate, endDate),
+      repoSlug
+        ? (() => {
+            const [owner, repo] = repoSlug.split("/");
+            return fetchRepoReleases(owner, repo, token);
+          })()
+        : Promise.resolve(null),
+    ]);
 
     return NextResponse.json({
       success: true,
       data: {
         website,
+        releases,
         appStore: null, // TODO: integrate App Store Connect once Afuera ships (reuse lib/app-store-connect.ts, needs per-app parameterization)
         signups: null,  // TODO: track signups — either PostHog custom events (user_signed_up) or query Clerk/backend directly
       },

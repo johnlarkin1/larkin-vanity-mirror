@@ -4,11 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import type { PostHogAnalyticsData } from "@/lib/posthog";
+import type { GitHubReleasesData } from "@/lib/github";
 
-export type { PostHogAnalyticsData };
+export type { PostHogAnalyticsData, GitHubReleasesData };
 
 export interface OdysseyAnalyticsData {
   website: PostHogAnalyticsData;
+  releases: GitHubReleasesData | null;
   appStore: null; // TODO: integrate App Store Connect data (downloads, proceeds, reviews) once Odyssey ships
 }
 

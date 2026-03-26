@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Eye, MousePointerClick, Timer, RefreshCw, Globe, Smartphone, Monitor, Watch } from "lucide-react";
+import { Users, Eye, MousePointerClick, Timer, RefreshCw, Globe, Smartphone, Monitor, Watch, Tag } from "lucide-react";
 import { MetricCard } from "@/components/data-display/metric-card";
 import { StatGroup } from "@/components/data-display/stat-group";
 import { TimeSeriesChart } from "@/components/charts/time-series-chart";
@@ -40,6 +40,7 @@ export default function OdysseyPage() {
     useOdysseyAnalytics({ dateRange });
 
   const website = data?.website;
+  const releases = data?.releases;
 
   const chartSeries = [
     { dataKey: "visitors", name: "Pageviews", color: "hsl(var(--chart-1))" },
@@ -85,6 +86,18 @@ export default function OdysseyPage() {
             </Button>
           </CardContent>
         </Card>
+      )}
+
+      {/* Latest Version */}
+      {releases?.latestVersion && (
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <MetricCard
+            title="Latest Version"
+            value={releases.latestVersion}
+            icon={Tag}
+            isLoading={isLoading}
+          />
+        </div>
       )}
 
       {/* Website Analytics */}
