@@ -4,6 +4,8 @@ import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type Header,
+  type RowData,
   type SortingState,
   flexRender,
   getCoreRowModel,
@@ -12,6 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Filter } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -24,6 +27,116 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    enableSorting?: boolean;
+    filterVariant?: "dropdown";
+    filterOptions?: { label: string; value: string }[];
+  }
+}
+
+function SortableHeader<TData>({
+  header,
+  children,
+}: {
+  header: Header<TData, unknown>;
+  children: React.ReactNode;
+}) {
+  const sorted = header.column.getIsSorted();
+  return (
+    <button
+      className="flex items-center gap-1 hover:text-foreground text-left"
+      onClick={header.column.getToggleSortingHandler()}
+    >
+      {children}
+      {sorted === "asc" && <ChevronUp className="h-3.5 w-3.5" />}
+      {sorted === "desc" && <ChevronDown className="h-3.5 w-3.5" />}
+      {!sorted && <ChevronsUpDown className="h-3.5 w-3.5 opacity-40" />}
+    </button>
+  );
+}
+
+function ColumnFilterDropdown<TData>({
+  header,
+  children,
+}: {
+  header: Header<TData, unknown>;
+  children: React.ReactNode;
+}) {
+  const options = header.column.columnDef.meta?.filterOptions ?? [];
+  const currentFilter =
+    (header.column.getFilterValue() as string[] | undefined) ?? [];
+
+  function toggle(value: string) {
+    const next = currentFilter.includes(value)
+      ? currentFilter.filter((v) => v !== value)
+      : [...currentFilter, value];
+    header.column.setFilterValue(next.length ? next : undefined);
+  }
+
+  const isFiltered = currentFilter.length > 0;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className={cn(
+            "flex items-center gap-1 hover:text-foreground text-left",
+            isFiltered && "text-foreground font-semibold"
+          )}
+        >
+          {children}
+          <Filter
+            className={cn(
+              "h-3.5 w-3.5",
+              isFiltered ? "opacity-100" : "opacity-40"
+            )}
+          />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuLabel>Filter</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {options.map((opt) => (
+          <DropdownMenuCheckboxItem
+            key={opt.value}
+            checked={currentFilter.includes(opt.value)}
+            onCheckedChange={() => toggle(opt.value)}
+            onSelect={(e) => e.preventDefault()}
+          >
+            {opt.label}
+          </DropdownMenuCheckboxItem>
+        ))}
+        {isFiltered && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem
+              checked={false}
+              onCheckedChange={() =>
+                header.column.setFilterValue(undefined)
+              }
+              onSelect={(e) => e.preventDefault()}
+              className="text-muted-foreground text-xs"
+            >
+              Clear filter
+            </DropdownMenuCheckboxItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 interface DataTableProps<TData, TValue> {
   title?: string;
@@ -73,6 +186,19 @@ export function DataTable<TData, TValue>({
       },
     },
   });
+
+  function renderHeaderCell(header: Header<TData, unknown>) {
+    if (header.isPlaceholder) return null;
+    const rendered = flexRender(header.column.columnDef.header, header.getContext());
+    const meta = header.column.columnDef.meta;
+    if (meta?.enableSorting) {
+      return <SortableHeader header={header}>{rendered}</SortableHeader>;
+    }
+    if (meta?.filterVariant === "dropdown") {
+      return <ColumnFilterDropdown header={header}>{rendered}</ColumnFilterDropdown>;
+    }
+    return rendered;
+  }
 
   if (isLoading) {
     return (
@@ -132,9 +258,7 @@ export function DataTable<TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                    {renderHeaderCell(header)}
                   </TableHead>
                 ))}
               </TableRow>

@@ -115,6 +115,8 @@ const columns: ColumnDef<GitHubRepository>[] = [
   {
     accessorKey: "name",
     header: "Repository",
+    enableSorting: true,
+    meta: { enableSorting: true },
     cell: ({ row }) => {
       const repo = row.original;
       return (
@@ -151,6 +153,8 @@ const columns: ColumnDef<GitHubRepository>[] = [
         Stars
       </div>
     ),
+    enableSorting: true,
+    meta: { enableSorting: true },
     cell: ({ row }) => (
       <span className="font-medium">{formatNumber(row.original.stars)}</span>
     ),
@@ -163,11 +167,33 @@ const columns: ColumnDef<GitHubRepository>[] = [
         Forks
       </div>
     ),
+    enableSorting: true,
+    meta: { enableSorting: true },
     cell: ({ row }) => formatNumber(row.original.forks),
   },
   {
     accessorKey: "isArchived",
     header: "Status",
+    filterFn: (row, _columnId, filterValue: string[]) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const repo = row.original;
+      return filterValue.some((v) => {
+        if (v === "public") return !repo.isPrivate;
+        if (v === "private") return repo.isPrivate;
+        if (v === "archived") return repo.isArchived;
+        if (v === "fork") return repo.isFork;
+        return false;
+      });
+    },
+    meta: {
+      filterVariant: "dropdown",
+      filterOptions: [
+        { label: "Public", value: "public" },
+        { label: "Private", value: "private" },
+        { label: "Archived", value: "archived" },
+        { label: "Fork", value: "fork" },
+      ],
+    },
     cell: ({ row }) => {
       const badges = [];
       // Visibility badge
@@ -210,6 +236,8 @@ const columns: ColumnDef<GitHubRepository>[] = [
         Created
       </div>
     ),
+    enableSorting: true,
+    meta: { enableSorting: true },
     cell: ({ row }) => {
       const date = new Date(row.original.createdAt);
       return (
