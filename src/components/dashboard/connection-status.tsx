@@ -14,6 +14,9 @@ const EXTERNAL_URLS: Record<string, string> = {
   "tennis-scorigami": "https://tennis-scorigami.com",
   scrollz: "https://scrollz.co",
   "walk-in-the-parquet": "https://www.walkintheparquet.com",
+  odozi: "https://odozi.app",
+  afuera: "https://afuera.app",
+  "be-right-back": "https://berightback.xyz",
 };
 
 interface ConnectionStatusProps {
