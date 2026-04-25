@@ -6,7 +6,7 @@ const API_TIMEOUT = 15000; // 15 seconds
 
 export type PostHogProject =
   | "tennis-scorigami"
-  | "odyssey"
+  | "odozi"
   | "afuera"
   | "be-right-back";
 
@@ -18,7 +18,7 @@ interface PostHogConfig {
 
 const PROJECT_ENV_PREFIXES: Record<PostHogProject, string> = {
   "tennis-scorigami": "TENNIS_SCORIGAMI",
-  "odyssey": "ODYSSEY",
+  "odozi": "ODOZI",
   "afuera": "AFUERA",
   "be-right-back": "BE_RIGHT_BACK",
 };
@@ -27,13 +27,9 @@ function getConfigForProject(project: PostHogProject): PostHogConfig {
   const prefix = PROJECT_ENV_PREFIXES[project];
   const host = process.env.POSTHOG_HOST ?? "https://us.posthog.com";
 
-  // One shared personal API key (phx_...) for all projects
+  // One shared personal API key (phx_...) with read access to all projects.
   const apiKey = process.env.POSTHOG_API_KEY;
-
-  // Per-project ID; Tennis Scorigami falls back to legacy POSTHOG_PROJECT_ID
-  const projectId =
-    process.env[`${prefix}_POSTHOG_PROJECT_ID`] ??
-    (project === "tennis-scorigami" ? process.env.POSTHOG_PROJECT_ID : undefined);
+  const projectId = process.env[`${prefix}_POSTHOG_PROJECT_ID`];
 
   if (!apiKey) {
     throw new Error("Missing POSTHOG_API_KEY environment variable");

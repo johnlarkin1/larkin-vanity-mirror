@@ -52,7 +52,8 @@ export async function GET(request: NextRequest) {
 
   const gaPropertyId = process.env.WALK_IN_THE_PARQUET_GA_PROPERTY_ID;
   const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-  const appStoreConfigured = isAppStoreConnectConfigured();
+  const appStoreAppId = process.env.WALK_IN_THE_PARQUET_APP_STORE_CONNECT_APP_ID;
+  const appStoreConfigured = isAppStoreConnectConfigured(appStoreAppId);
 
   // Check if at least one data source is configured
   if (!gaPropertyId && !appStoreConfigured) {
@@ -78,10 +79,12 @@ export async function GET(request: NextRequest) {
           )
         : Promise.resolve(null),
       appStoreConfigured
-        ? fetchAppStoreAnalytics(startDate, endDate).catch((err) => {
-            console.error("Error fetching App Store data:", err);
-            return null;
-          })
+        ? fetchAppStoreAnalytics(startDate, endDate, { appId: appStoreAppId }).catch(
+            (err) => {
+              console.error("Error fetching App Store data:", err);
+              return null;
+            }
+          )
         : Promise.resolve(null),
     ]);
 

@@ -5,53 +5,54 @@ import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import type { PostHogAnalyticsData } from "@/lib/posthog";
 import type { GitHubReleasesData } from "@/lib/github";
+import type { AppStoreAnalyticsData } from "@/lib/app-store-connect";
 
-export type { PostHogAnalyticsData, GitHubReleasesData };
+export type { PostHogAnalyticsData, GitHubReleasesData, AppStoreAnalyticsData };
 
-export interface OdysseyAnalyticsData {
+export interface OdoziAnalyticsData {
   website: PostHogAnalyticsData;
   releases: GitHubReleasesData | null;
-  appStore: null; // TODO: integrate App Store Connect data (downloads, proceeds, reviews) once Odyssey ships
+  appStore: AppStoreAnalyticsData | null;
 }
 
-interface OdysseyAnalyticsResponse {
+interface OdoziAnalyticsResponse {
   success: boolean;
-  data?: OdysseyAnalyticsData;
+  data?: OdoziAnalyticsData;
   error?: string;
 }
 
-interface UseOdysseyAnalyticsOptions {
+interface UseOdoziAnalyticsOptions {
   dateRange: DateRange;
   enabled?: boolean;
 }
 
-async function fetchOdysseyAnalytics(
+async function fetchOdoziAnalytics(
   startDate: string,
   endDate: string
-): Promise<OdysseyAnalyticsData> {
+): Promise<OdoziAnalyticsData> {
   const response = await fetch(
-    `/api/odyssey/analytics?startDate=${startDate}&endDate=${endDate}`
+    `/api/odozi/analytics?startDate=${startDate}&endDate=${endDate}`
   );
 
-  const json: OdysseyAnalyticsResponse = await response.json();
+  const json: OdoziAnalyticsResponse = await response.json();
 
   if (!response.ok || !json.success) {
-    throw new Error(json.error ?? "Failed to fetch Odyssey analytics");
+    throw new Error(json.error ?? "Failed to fetch Odozi analytics");
   }
 
   return json.data!;
 }
 
-export function useOdysseyAnalytics({
+export function useOdoziAnalytics({
   dateRange,
   enabled = true,
-}: UseOdysseyAnalyticsOptions) {
+}: UseOdoziAnalyticsOptions) {
   const startDate = dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : null;
   const endDate = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : null;
 
   return useQuery({
-    queryKey: ["odyssey-analytics", startDate, endDate],
-    queryFn: () => fetchOdysseyAnalytics(startDate!, endDate!),
+    queryKey: ["odozi-analytics", startDate, endDate],
+    queryFn: () => fetchOdoziAnalytics(startDate!, endDate!),
     enabled: enabled && !!startDate && !!endDate,
     staleTime: 5 * 60 * 1000,
     retry: 1,

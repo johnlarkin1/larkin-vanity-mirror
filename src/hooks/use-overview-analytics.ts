@@ -17,7 +17,7 @@ import {
 } from "./use-walk-in-the-parquet-analytics";
 import { useVanityMirrorAnalytics } from "./use-vanity-mirror-analytics";
 import { useYouTubeAnalytics, type YouTubeAnalyticsData } from "./use-youtube-analytics";
-import { useOdysseyAnalytics, type OdysseyAnalyticsData } from "./use-odyssey-analytics";
+import { useOdoziAnalytics, type OdoziAnalyticsData } from "./use-odozi-analytics";
 import { useAfueraAnalytics, type AfueraAnalyticsData } from "./use-afuera-analytics";
 import {
   useBeRightBackAnalytics,
@@ -34,7 +34,7 @@ export type DataSource =
   | "tennis-scorigami"
   | "walk-in-the-parquet"
   | "vanity-mirror"
-  | "odyssey"
+  | "odozi"
   | "afuera"
   | "be-right-back";
 
@@ -85,7 +85,7 @@ export interface LoadingStates {
   tennisScorigami: boolean;
   walkInTheParquet: boolean;
   vanityMirror: boolean;
-  odyssey: boolean;
+  odozi: boolean;
   afuera: boolean;
   beRightBack: boolean;
 }
@@ -102,7 +102,7 @@ export interface OverviewAnalyticsData {
     tennisScorigami: TennisScorigamiAnalyticsData | null;
     walkInTheParquet: WalkInTheParquetAnalyticsData | null;
     vanityMirror: BlogAnalyticsData | null;
-    odyssey: OdysseyAnalyticsData | null;
+    odozi: OdoziAnalyticsData | null;
     afuera: AfueraAnalyticsData | null;
     beRightBack: BeRightBackAnalyticsData | null;
   };
@@ -163,7 +163,7 @@ export function useOverviewAnalytics({
   const tennisScorigamiQuery = useTennisScorigamiAnalytics({ dateRange, enabled });
   const walkInTheParquetQuery = useWalkInTheParquetAnalytics({ dateRange, enabled });
   const vanityMirrorQuery = useVanityMirrorAnalytics({ dateRange, enabled });
-  const odysseyQuery = useOdysseyAnalytics({ dateRange, enabled });
+  const odoziQuery = useOdoziAnalytics({ dateRange, enabled });
   const afueraQuery = useAfueraAnalytics({ dateRange, enabled });
   const beRightBackQuery = useBeRightBackAnalytics({ dateRange, enabled });
 
@@ -201,7 +201,7 @@ export function useOverviewAnalytics({
       {
         id: "tennis-scorigami",
         name: "PostHog",
-        description: "Tennis Scorigami",
+        description: "Tennis Scorigami (tennis-scorigami.com)",
         status: getSourceStatus(tennisScorigamiQuery),
         href: "/tennis-scorigami",
       },
@@ -220,11 +220,11 @@ export function useOverviewAnalytics({
         href: "/vanity-mirror",
       },
       {
-        id: "odyssey",
+        id: "odozi",
         name: "PostHog",
-        description: "Odyssey (odozi.app)",
-        status: getSourceStatus(odysseyQuery),
-        href: "/odyssey",
+        description: "Odozi (odozi.app)",
+        status: getSourceStatus(odoziQuery),
+        href: "/odozi",
       },
       {
         id: "afuera",
@@ -241,7 +241,7 @@ export function useOverviewAnalytics({
         href: "/be-right-back",
       },
     ];
-  }, [blogQuery, githubQuery, youtubeQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery, odysseyQuery, afueraQuery, beRightBackQuery]);
+  }, [blogQuery, githubQuery, youtubeQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery, odoziQuery, afueraQuery, beRightBackQuery]);
 
   // Compute aggregated metrics
   const metrics = useMemo((): AggregatedMetrics => {
@@ -251,7 +251,7 @@ export function useOverviewAnalytics({
     const tennisScorigami = tennisScorigamiQuery.data;
     const walkInTheParquet = walkInTheParquetQuery.data;
     const vanityMirror = vanityMirrorQuery.data;
-    const odyssey = odysseyQuery.data;
+    const odozi = odoziQuery.data;
     const afuera = afueraQuery.data;
     const beRightBack = beRightBackQuery.data;
 
@@ -261,7 +261,7 @@ export function useOverviewAnalytics({
       (tennisScorigami?.metrics.visitors.value ?? 0) +
       (walkInTheParquet?.documentation?.metrics.visitors.value ?? 0) +
       (vanityMirror?.metrics.visitors.value ?? 0) +
-      (odyssey?.website.metrics.visitors.value ?? 0) +
+      (odozi?.website.metrics.visitors.value ?? 0) +
       (afuera?.website.metrics.visitors.value ?? 0) +
       (beRightBack?.website.metrics.visitors.value ?? 0);
 
@@ -270,7 +270,7 @@ export function useOverviewAnalytics({
       tennisScorigami?.metrics.visitors,
       walkInTheParquet?.documentation?.metrics.visitors,
       vanityMirror?.metrics.visitors,
-      odyssey?.website.metrics.visitors,
+      odozi?.website.metrics.visitors,
       afuera?.website.metrics.visitors,
       beRightBack?.website.metrics.visitors,
     ]);
@@ -313,7 +313,7 @@ export function useOverviewAnalytics({
     tennisScorigamiQuery.data,
     walkInTheParquetQuery.data,
     vanityMirrorQuery.data,
-    odysseyQuery.data,
+    odoziQuery.data,
     afueraQuery.data,
     beRightBackQuery.data,
     sources,
@@ -329,7 +329,7 @@ export function useOverviewAnalytics({
     const packages = packagesQuery.data;
     const tennisScorigami = tennisScorigamiQuery.data;
     const walkInTheParquet = walkInTheParquetQuery.data;
-    const odyssey = odysseyQuery.data;
+    const odozi = odoziQuery.data;
     const afuera = afueraQuery.data;
     const beRightBack = beRightBackQuery.data;
 
@@ -426,15 +426,15 @@ export function useOverviewAnalytics({
       });
     }
 
-    // Odyssey top events
-    if (odyssey?.website.topEvents) {
-      odyssey.website.topEvents.slice(0, 2).forEach((event, i) => {
+    // Odozi top events
+    if (odozi?.website.topEvents) {
+      odozi.website.topEvents.slice(0, 2).forEach((event, i) => {
         items.push({
-          id: `odyssey-event-${i}`,
-          source: "odyssey",
+          id: `odozi-event-${i}`,
+          source: "odozi",
           type: "event",
           title: event.eventName,
-          description: `${event.count.toLocaleString()} occurrences (Odyssey)`,
+          description: `${event.count.toLocaleString()} occurrences (Odozi)`,
           value: event.count,
         });
       });
@@ -477,7 +477,7 @@ export function useOverviewAnalytics({
     packagesQuery.data,
     tennisScorigamiQuery.data,
     walkInTheParquetQuery.data,
-    odysseyQuery.data,
+    odoziQuery.data,
     afueraQuery.data,
     beRightBackQuery.data,
   ]);
@@ -491,7 +491,7 @@ export function useOverviewAnalytics({
     tennisScorigami: tennisScorigamiQuery.isLoading,
     walkInTheParquet: walkInTheParquetQuery.isLoading,
     vanityMirror: vanityMirrorQuery.isLoading,
-    odyssey: odysseyQuery.isLoading,
+    odozi: odoziQuery.isLoading,
     afuera: afueraQuery.isLoading,
     beRightBack: beRightBackQuery.isLoading,
   }), [
@@ -502,7 +502,7 @@ export function useOverviewAnalytics({
     tennisScorigamiQuery.isLoading,
     walkInTheParquetQuery.isLoading,
     vanityMirrorQuery.isLoading,
-    odysseyQuery.isLoading,
+    odoziQuery.isLoading,
     afueraQuery.isLoading,
     beRightBackQuery.isLoading,
   ]);
@@ -516,7 +516,7 @@ export function useOverviewAnalytics({
     tennisScorigamiQuery.isLoading &&
     walkInTheParquetQuery.isLoading &&
     vanityMirrorQuery.isLoading &&
-    odysseyQuery.isLoading &&
+    odoziQuery.isLoading &&
     afueraQuery.isLoading &&
     beRightBackQuery.isLoading;
 
@@ -529,7 +529,7 @@ export function useOverviewAnalytics({
     tennisScorigamiQuery.isFetching ||
     walkInTheParquetQuery.isFetching ||
     vanityMirrorQuery.isFetching ||
-    odysseyQuery.isFetching ||
+    odoziQuery.isFetching ||
     afueraQuery.isFetching ||
     beRightBackQuery.isFetching;
 
@@ -543,11 +543,11 @@ export function useOverviewAnalytics({
       tennisScorigamiQuery.refetch(),
       walkInTheParquetQuery.refetch(),
       vanityMirrorQuery.refetch(),
-      odysseyQuery.refetch(),
+      odoziQuery.refetch(),
       afueraQuery.refetch(),
       beRightBackQuery.refetch(),
     ]);
-  }, [blogQuery, githubQuery, youtubeQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery, odysseyQuery, afueraQuery, beRightBackQuery]);
+  }, [blogQuery, githubQuery, youtubeQuery, packagesQuery, tennisScorigamiQuery, walkInTheParquetQuery, vanityMirrorQuery, odoziQuery, afueraQuery, beRightBackQuery]);
 
   const data: OverviewAnalyticsData = useMemo(
     () => ({
@@ -562,7 +562,7 @@ export function useOverviewAnalytics({
         tennisScorigami: tennisScorigamiQuery.data ?? null,
         walkInTheParquet: walkInTheParquetQuery.data ?? null,
         vanityMirror: vanityMirrorQuery.data ?? null,
-        odyssey: odysseyQuery.data ?? null,
+        odozi: odoziQuery.data ?? null,
         afuera: afueraQuery.data ?? null,
         beRightBack: beRightBackQuery.data ?? null,
       },
@@ -578,7 +578,7 @@ export function useOverviewAnalytics({
       tennisScorigamiQuery.data,
       walkInTheParquetQuery.data,
       vanityMirrorQuery.data,
-      odysseyQuery.data,
+      odoziQuery.data,
       afueraQuery.data,
       beRightBackQuery.data,
     ]

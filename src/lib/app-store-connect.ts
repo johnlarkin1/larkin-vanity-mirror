@@ -3,20 +3,19 @@ import { fetchWithTimeout } from "./fetch-with-timeout";
 
 const API_TIMEOUT = 15000; // 15 seconds
 
-// App Store Connect API configuration
-interface AppStoreConnectConfig {
+// App Store Connect API configuration — credentials are shared across all apps
+// under the same Apple Developer account; appId is per-app and passed by callers.
+interface SharedConfig {
   keyId: string;
   issuerId: string;
   privateKey: string;
-  appId: string;
   vendorNumber: string;
 }
 
-function getConfig(): AppStoreConnectConfig {
+function getSharedConfig(): SharedConfig {
   const keyId = process.env.APP_STORE_CONNECT_KEY_ID;
   const issuerId = process.env.APP_STORE_CONNECT_ISSUER_ID;
   const privateKey = process.env.APP_STORE_CONNECT_PRIVATE_KEY;
-  const appId = process.env.APP_STORE_CONNECT_APP_ID;
   const vendorNumber = process.env.APP_STORE_CONNECT_VENDOR_NUMBER;
 
   if (!keyId) {
@@ -28,14 +27,20 @@ function getConfig(): AppStoreConnectConfig {
   if (!privateKey) {
     throw new Error("Missing APP_STORE_CONNECT_PRIVATE_KEY environment variable");
   }
-  if (!appId) {
-    throw new Error("Missing APP_STORE_CONNECT_APP_ID environment variable");
-  }
   if (!vendorNumber) {
     throw new Error("Missing APP_STORE_CONNECT_VENDOR_NUMBER environment variable");
   }
 
-  return { keyId, issuerId, privateKey, appId, vendorNumber };
+  return { keyId, issuerId, privateKey, vendorNumber };
+}
+
+function resolveAppId(appId: string | undefined): string {
+  if (!appId) {
+    throw new Error(
+      "Missing app ID — pass a per-app appId (e.g. ODOZI_APP_STORE_CONNECT_APP_ID, WALK_IN_THE_PARQUET_APP_STORE_CONNECT_APP_ID)"
+    );
+  }
+  return appId;
 }
 
 // JWT token cache
@@ -48,7 +53,7 @@ async function generateJWT(): Promise<string> {
     return cachedToken.token;
   }
 
-  const { keyId, issuerId, privateKey } = getConfig();
+  const { keyId, issuerId, privateKey } = getSharedConfig();
 
   // Decode base64 private key
   let decodedKey: string;
@@ -255,13 +260,15 @@ function parseSalesReportTSV(tsv: string): SalesReport[] {
  */
 export async function fetchSalesReports(
   startDate: string,
-  endDate: string
+  endDate: string,
+  options?: { appId?: string }
 ): Promise<AppStoreSalesData> {
-  const cacheKey = `sales:${startDate}:${endDate}`;
+  const appId = resolveAppId(options?.appId);
+  const cacheKey = `sales:${appId}:${startDate}:${endDate}`;
   const cached = getCached<AppStoreSalesData>(cacheKey);
   if (cached) return cached;
 
-  const { vendorNumber } = getConfig();
+  const { vendorNumber } = getSharedConfig();
   const token = await generateJWT();
 
   // Sales reports API endpoint
@@ -371,9 +378,12 @@ export async function fetchSalesReports(
   // 1T = Paid Universal, 1TF = Free Universal
   const appProductTypes = new Set(["F1", "F3", "1", "1F", "1T", "1TF", "7", "7F"]);
 
+  // Sales TSVs cover ALL apps under the vendor — filter to just this app.
+  const isThisApp = (r: SalesReport) =>
+    r.appleIdentifier === appId && appProductTypes.has(r.productTypeIdentifier);
+
   for (const report of allReports) {
-    // Only count app downloads (not in-app purchases, etc.)
-    if (appProductTypes.has(report.productTypeIdentifier)) {
+    if (isThisApp(report)) {
       totalUnits += report.units;
       totalProceeds += report.developerProceeds;
 
@@ -393,7 +403,7 @@ export async function fetchSalesReports(
 
   for (const report of allReports) {
     const reportDate = new Date(report.beginDate);
-    if (reportDate >= oneWeekAgo && appProductTypes.has(report.productTypeIdentifier)) {
+    if (reportDate >= oneWeekAgo && isThisApp(report)) {
       weeklyUnits += report.units;
       weeklyProceeds += report.developerProceeds;
     }
@@ -416,12 +426,14 @@ export async function fetchSalesReports(
 /**
  * Fetch customer reviews for the app
  */
-export async function fetchCustomerReviews(): Promise<AppStoreReviewData> {
-  const cacheKey = "reviews";
+export async function fetchCustomerReviews(
+  options?: { appId?: string }
+): Promise<AppStoreReviewData> {
+  const appId = resolveAppId(options?.appId);
+  const cacheKey = `reviews:${appId}`;
   const cached = getCached<AppStoreReviewData>(cacheKey);
   if (cached) return cached;
 
-  const { appId } = getConfig();
   const token = await generateJWT();
 
   const baseUrl = `https://api.appstoreconnect.apple.com/v1/apps/${appId}/customerReviews`;
@@ -499,9 +511,11 @@ export async function fetchCustomerReviews(): Promise<AppStoreReviewData> {
  */
 export async function fetchAppStoreAnalytics(
   startDate: string,
-  endDate: string
+  endDate: string,
+  options?: { appId?: string }
 ): Promise<AppStoreAnalyticsData> {
-  const cacheKey = `analytics:${startDate}:${endDate}`;
+  const appId = resolveAppId(options?.appId);
+  const cacheKey = `analytics:${appId}:${startDate}:${endDate}`;
   const cached = getCached<AppStoreAnalyticsData>(cacheKey);
   if (cached) return cached;
 
@@ -520,9 +534,9 @@ export async function fetchAppStoreAnalytics(
 
   // Fetch current and previous period data in parallel
   const [currentSales, previousSales, reviews] = await Promise.all([
-    fetchSalesReports(startDate, endDate),
-    fetchSalesReports(prevStartDate, prevEndDate),
-    fetchCustomerReviews(),
+    fetchSalesReports(startDate, endDate, { appId }),
+    fetchSalesReports(prevStartDate, prevEndDate, { appId }),
+    fetchCustomerReviews({ appId }),
   ]);
 
   const result: AppStoreAnalyticsData = {
@@ -574,14 +588,15 @@ function formatDate(dateString: string): string {
 }
 
 /**
- * Check if App Store Connect is configured
+ * Check if App Store Connect is configured for a specific app. Verifies shared
+ * credentials (key id, issuer, private key, vendor number) plus the per-app id.
  */
-export function isAppStoreConnectConfigured(): boolean {
+export function isAppStoreConnectConfigured(appId: string | undefined): boolean {
+  if (!appId) return false;
   return !!(
     process.env.APP_STORE_CONNECT_KEY_ID &&
     process.env.APP_STORE_CONNECT_ISSUER_ID &&
     process.env.APP_STORE_CONNECT_PRIVATE_KEY &&
-    process.env.APP_STORE_CONNECT_APP_ID &&
     process.env.APP_STORE_CONNECT_VENDOR_NUMBER
   );
 }
