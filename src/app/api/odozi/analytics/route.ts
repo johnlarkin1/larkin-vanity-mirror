@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPostHogAnalytics } from "@/lib/posthog";
 import { fetchRepoReleases } from "@/lib/github";
+import {
+  fetchAppStoreAnalytics,
+  isAppStoreConnectConfigured,
+} from "@/lib/app-store-connect";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
@@ -42,16 +46,26 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const repoSlug = process.env.ODYSSEY_GITHUB_REPO;
+    const repoSlug = process.env.ODOZI_GITHUB_REPO;
     const token = process.env.GITHUB_TOKEN;
+    const appStoreAppId = process.env.ODOZI_APP_STORE_CONNECT_APP_ID;
+    const appStoreReady = isAppStoreConnectConfigured(appStoreAppId);
 
-    const [website, releases] = await Promise.all([
-      fetchPostHogAnalytics("odyssey", startDate, endDate),
+    const [website, releases, appStore] = await Promise.all([
+      fetchPostHogAnalytics("odozi", startDate, endDate),
       repoSlug
         ? (() => {
             const [owner, repo] = repoSlug.split("/");
             return fetchRepoReleases(owner, repo, token);
           })()
+        : Promise.resolve(null),
+      appStoreReady
+        ? fetchAppStoreAnalytics(startDate, endDate, { appId: appStoreAppId }).catch(
+            (err) => {
+              console.error("Error fetching Odozi App Store data:", err);
+              return null;
+            }
+          )
         : Promise.resolve(null),
     ]);
 
@@ -60,11 +74,11 @@ export async function GET(request: NextRequest) {
       data: {
         website,
         releases,
-        appStore: null, // TODO: integrate App Store Connect once Odyssey ships (reuse lib/app-store-connect.ts, needs per-app parameterization)
+        appStore,
       },
     });
   } catch (error) {
-    console.error("Odyssey analytics error:", error);
+    console.error("Odozi analytics error:", error);
 
     if (error instanceof Error) {
       if (error.message.includes("authentication failed")) {

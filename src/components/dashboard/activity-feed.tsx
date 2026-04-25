@@ -63,8 +63,8 @@ const sourceConfig: Record<
     bgColor: "bg-violet-500/10 hover:bg-violet-500/20 data-[active=true]:bg-violet-500/25",
     icon: Sparkles,
   },
-  odyssey: {
-    label: "Odyssey",
+  odozi: {
+    label: "Odozi",
     color: "text-sky-600 dark:text-sky-400",
     bgColor: "bg-sky-500/10 hover:bg-sky-500/20 data-[active=true]:bg-sky-500/25",
     icon: BookOpen,
@@ -92,7 +92,7 @@ const filterOptions: { value: FilterOption; label: string }[] = [
   { value: "tennis-scorigami", label: "Tennis" },
   { value: "walk-in-the-parquet", label: "Parquet" },
   { value: "vanity-mirror", label: "Dashboard" },
-  { value: "odyssey", label: "Odyssey" },
+  { value: "odozi", label: "Odozi" },
   { value: "afuera", label: "Afuera" },
   { value: "be-right-back", label: "BRB" },
 ];

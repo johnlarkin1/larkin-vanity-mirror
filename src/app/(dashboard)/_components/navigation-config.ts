@@ -64,9 +64,9 @@ export const DEFAULT_NAVIGATION: NavigationItem[] = [
     description: "PostHog analytics",
   },
   {
-    id: "odyssey",
-    name: "Odyssey",
-    href: "/odyssey",
+    id: "odozi",
+    name: "Odozi",
+    href: "/odozi",
     icon: BookOpen,
     iconColor: "text-sky-500",
     description: "Journaling app",
